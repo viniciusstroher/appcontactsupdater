@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -57,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
 
         addMessageToList("Iniciando app.");
 
-
         try {
             startService(new Intent(MainActivity.this, UpdaterService.class));
         }catch(Exception e){
@@ -68,7 +68,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void addMessageToList(String message){
         String currentDateTimeString = java.text.DateFormat.getDateTimeInstance().format(new Date());
-        arrayListMessages.add("["+currentDateTimeString+"]"+message);
+        arrayListMessages.add("["+currentDateTimeString+"] "+message);
+        ((ArrayAdapter<String>) listView.getAdapter()).notifyDataSetChanged();
     }
 
     @Override
@@ -87,9 +88,11 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 JSONObject objMessage = new JSONObject(message);
-                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive] message: "+objMessage);
+                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive] message: "+objMessage.toString());
+                addMessageToList(objMessage.toString());
             } catch (Exception e) {
-                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive][Exception] "+ e.getMessage());
+                addMessageToList(message);
+                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive][Exception] "+ message);
             }
         }
     };

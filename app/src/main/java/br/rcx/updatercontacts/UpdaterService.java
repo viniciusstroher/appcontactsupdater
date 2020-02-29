@@ -1,8 +1,9 @@
 package br.rcx.updatercontacts;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
-import android.os.IBinder;
+import android.os.*;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
@@ -15,49 +16,85 @@ import java.util.logging.Logger;
 public class UpdaterService extends Service {
     private int serverPort = 3322;
     private ServerSocket server;
-
+    private Thread socketThread = null;
+    public boolean isRunning = true;
     public UpdaterService() throws IOException {
+
         server = new ServerSocket(serverPort);
         String startSocketLog = "[UpdaterService][UpdaterService] Servidor iniciado na porta "+serverPort;
         Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, startSocketLog);
 
-        sendMessage("Iniciando servico de socket");
+        sendMessage("UpdaterService iniciando");
 
-        handleSocketProcess();
+        socketThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                sendMessage("Iniciando servico de socket: "+isRunning);
+                while(isRunning) {
+                    Socket client = null;
+                    try {
+                        sendMessage("Esperando por cliente");
+                        client = server.accept();
+                        sendMessage("Cliente conectado: "+client.getInetAddress().getHostAddress());
+                    } catch (Exception e) {
+                        Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][handleSocketProcess][Exception] " + e.getMessage());
+                        sendMessage("Nenhum cliente conectado");
+                        client = null;
+                    }
 
+                    if (client != null) {
+                        String messageInLog = "[UpdaterService][handleSocketProcess] Cliente conectado do IP " + client.getInetAddress().
+                                getHostAddress();
+                        Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, messageInLog);
+
+                        Scanner entry = null;
+                        try {
+                            entry = new Scanner(client.getInputStream());
+                        } catch (IOException e) {
+                            entry = null;
+                            e.printStackTrace();
+                        }
+
+                        if(entry != null) {
+                            while (entry.hasNextLine()) {
+                                String entryData = entry.nextLine();
+                                sendMessage(entryData);
+                                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][handleSocketProcess] " + entryData);
+                            }
+                        }
+
+                        try {
+                            client.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+
+        });
+
+        socketThread.start();
+    }
+
+    @Override
+    public void onCreate(){
 
     }
 
     public void sendMessage(String message){
         Intent intent = new Intent(MainActivity.filterBroadCastMessage);
         intent.putExtra("message", message);
-
         String startSocketLog = "[UpdaterService][sendMessage] Enviando mesage para MainActivity: "+message;
         Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, startSocketLog);
-
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-    }
-
-    public void handleSocketProcess() throws IOException {
-        try {
-            while(true) {
-                Socket client = server.accept();
-                String messageInLog = "[UpdaterService][handleSocketProcess] Cliente conectado do IP " + client.getInetAddress().
-                        getHostAddress();
-                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, messageInLog);
-
-                Scanner entry = new Scanner(client.getInputStream());
-                while (entry.hasNextLine()) {
-                    String entryData = entry.nextLine();
-                    Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][handleSocketProcess] "+entryData);
-                }
-
-                ((Socket) client).close();
-            }
-        }catch(Exception e){
-            server.close();
-            Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][handleSocketProcess][Exception] "+e.getMessage());
-        }
     }
 
     @Override
