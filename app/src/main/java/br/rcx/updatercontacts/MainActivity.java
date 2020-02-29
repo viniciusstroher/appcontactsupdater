@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -15,12 +17,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MainActivity extends AppCompatActivity {
     public static String filterBroadCastMessage = "message";
+
     public LocalBroadcastManager lbm;
+    public ArrayList<String> arrayListMessages=new ArrayList<String>();
+    public ArrayAdapter<String> adapter;
+
+    public ListView listView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,12 +51,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        listView = (ListView) findViewById(R.id.listLog);
+        adapter = new ArrayAdapter<String>(this, R.layout.simple_row, arrayListMessages);
+        listView.setAdapter(adapter);
+
+        addMessageToList("Iniciando app.");
+
+
         try {
             startService(new Intent(MainActivity.this, UpdaterService.class));
         }catch(Exception e){
             Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][onCreate] "+ e.getMessage());
         }
 
+    }
+
+    public void addMessageToList(String message){
+        String currentDateTimeString = java.text.DateFormat.getDateTimeInstance().format(new Date());
+        arrayListMessages.add("["+currentDateTimeString+"]"+message);
     }
 
     @Override
