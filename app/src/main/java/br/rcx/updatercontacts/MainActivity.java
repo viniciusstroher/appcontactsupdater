@@ -82,7 +82,8 @@ public class MainActivity extends AppCompatActivity {
 //        } catch (RemoteException e) {
 //            e.printStackTrace();
 //        }
-        getContactIdByNumber("+55 51 95412459");
+//        getContactIdByNumber("+55 51 95412459");
+//            hasWhatsapp("5");
     }
 
 
@@ -151,8 +152,15 @@ public class MainActivity extends AppCompatActivity {
                         contactId = getContactIdByNumber(objMessage.getString("phone"));
                         String contactName = getContactDisplayNameByNumber(objMessage.getString("phone"));
 
+                        String hasWhats = "";
+                        if(contactId != null){
+                            hasWhats = hasWhatsapp(contactId);
+                        }
+
                         returnObject.put("id",contactId);
-                        returnObject.put("name",contactName);
+                        returnObject.put("contactId",contactId);
+                        returnObject.put("contactName",contactName);
+                        returnObject.put("hasWhats",hasWhats);
 
                         sendMessage(returnObject.toString());
                         break;
@@ -247,12 +255,12 @@ public class MainActivity extends AppCompatActivity {
 
         ContentResolver contentResolver = getContentResolver();
         Cursor contactLookup = contentResolver.query(uri, new String[] {BaseColumns._ID,
-                ContactsContract.PhoneLookup._ID }, null, null, null);
+                ContactsContract.PhoneLookup.CONTACT_ID }, null, null, null);
 
         try {
             if (contactLookup != null && contactLookup.getCount() > 0) {
                 contactLookup.moveToNext();
-                name = contactLookup.getString(contactLookup.getColumnIndex(ContactsContract.Data.DISPLAY_NAME));
+                name = contactLookup.getString(contactLookup.getColumnIndex(ContactsContract.Data.CONTACT_ID));
                 //String contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
             }
         } finally {
