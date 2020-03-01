@@ -1,15 +1,13 @@
 package br.rcx.updatercontacts;
 
 import android.app.Service;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
+import android.content.*;
 import android.net.Uri;
 import android.os.*;
 import android.provider.ContactsContract;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -22,7 +20,22 @@ public class UpdaterService extends Service {
     private ServerSocket server;
     private Thread socketThread = null;
     public boolean isRunning = true;
+
+    public String messageBack = null;
+    public LocalBroadcastManager lbm;
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //recebe message que vier pelo brodcast do socket
+            Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][BroadcastReceiver][onReceive] Mensagem recebida ");
+            String message = intent.getStringExtra("message");
+            messageBack = message;
+        }
+    };
+
     public UpdaterService() throws IOException {
+        lbm = LocalBroadcastManager.getInstance(this);
+        lbm.registerReceiver(mMessageReceiver, new IntentFilter(MainActivity.filterBroadCastMessageOut));
 
         server = new ServerSocket(serverPort);
         String startSocketLog = "[UpdaterService][UpdaterService] Servidor iniciado na porta "+serverPort;
@@ -60,17 +73,37 @@ public class UpdaterService extends Service {
                         }
 
                         if(entry != null) {
-                            while (entry.hasNextLine()) {
+
                                 String entryData = entry.nextLine();
                                 sendMessage(entryData);
-                                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][handleSocketProcess] " + entryData);
-                            }
-                        }
+                                boolean waitReturnCommand = true;
+                                while(waitReturnCommand){
+                                    //espera receber a message do broadcast
+                                    //para processeguir
+                                    if(messageBack != null){
+                                        DataOutputStream outputStream = null;
+                                        try {
+                                            outputStream = new DataOutputStream(client.getOutputStream());
+                                            outputStream.writeUTF(messageBack);
+                                            sendMessage("Message enviada ["+client.getInetAddress().getHostAddress()+"] "+messageBack);
+                                        } catch (IOException e) {
+                                            sendMessage("Erro ao enviar message ao socket");
+                                            e.printStackTrace();
+                                        }
 
-                        try {
-                            client.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                                        messageBack = null;
+                                        waitReturnCommand = false;
+                                    }
+                                }
+
+                                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][handleSocketProcess] " + entryData);
+
+                                try {
+                                    client.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+
                         }
                     }
 
@@ -94,7 +127,7 @@ public class UpdaterService extends Service {
     }
 
     public void sendMessage(String message){
-        Intent intent = new Intent(MainActivity.filterBroadCastMessage);
+        Intent intent = new Intent(MainActivity.filterBroadCastMessageIn);
         intent.putExtra("message", message);
         String startSocketLog = "[UpdaterService][sendMessage] Enviando mesage para MainActivity: "+message;
         Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, startSocketLog);

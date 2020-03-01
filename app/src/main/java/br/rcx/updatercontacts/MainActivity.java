@@ -23,6 +23,7 @@ import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -31,7 +32,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MainActivity extends AppCompatActivity {
-    public static String filterBroadCastMessage = "message";
+    public static String filterBroadCastMessageIn = "message-in";
+    public static String filterBroadCastMessageOut = "message-out";
 
     public LocalBroadcastManager lbm;
     public ArrayList<String> arrayListMessages=new ArrayList<String>();
@@ -44,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         lbm = LocalBroadcastManager.getInstance(this);
-        lbm.registerReceiver(mMessageReceiver, new IntentFilter(MainActivity.filterBroadCastMessage));
+        lbm.registerReceiver(mMessageReceiver, new IntentFilter(MainActivity.filterBroadCastMessageIn));
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -73,8 +75,14 @@ public class MainActivity extends AppCompatActivity {
 
        ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS }, 12345);
 
-        //addContact("+55 51 95412459");
-
+//        try {
+//            addContact("+55 51 95412459");
+//        } catch (OperationApplicationException e) {
+//            e.printStackTrace();
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        }
+        getContactIdByNumber("+55 51 95412459");
     }
 
 
@@ -97,25 +105,67 @@ public class MainActivity extends AppCompatActivity {
             //recebe message que vier pelo brodcast do socket
             Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive] Mensagem recebida ");
             String message = intent.getStringExtra("message");
+            JSONObject objMessage = null;
 
             try {
-                JSONObject objMessage = new JSONObject(message);
-                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive] message: "+objMessage.toString());
+                objMessage = new JSONObject(message);
+                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[MainActivity][BroadcastReceiver][onReceive] message: " + objMessage.toString());
                 addMessageToList(objMessage.toString());
-
-                if(objMessage.getString("action").equals("add_contact")){
-                    addContact(objMessage.getString("phone"));
-                    addMessageToList("Adicionado numero: "+objMessage.getString("phone"));
+            }catch(Exception e) {
+                objMessage = new JSONObject();
+                try {
+                    objMessage.put("action","");
+                } catch (JSONException ex) {
+                    ex.printStackTrace();
                 }
+            }
 
-                if(objMessage.getString("action").equals("get_contact")){
-                   getContactDisplayNameByNumber(objMessage.getString("phone"));
-                    addMessageToList("Pesquisando numero: "+objMessage.getString("phone"));
+            try{
+                JSONObject returnObject = new JSONObject();
+                String messageReturn = "esta acao nao existe";
+                String contactId = null;
+
+                switch(objMessage.getString("action")){
+                    case "add_contact":
+                        contactId = getContactIdByNumber(objMessage.getString("phone"));
+
+                        if(contactId != null) {
+                            messageReturn = "Numero: " + objMessage.getString("phone")+" já existe";
+                            addMessageToList(messageReturn);
+
+                            returnObject.put("message",messageReturn);
+                            sendMessage(returnObject.toString());
+                        }else{
+                            addContact(objMessage.getString("phone"));
+                            messageReturn = "Adicionado numero: " + objMessage.getString("phone");
+                            addMessageToList(messageReturn);
+
+                            returnObject.put("message",messageReturn);
+                            sendMessage(returnObject.toString());
+                        }
+
+                        break;
+                    case "get_contact":
+                        addMessageToList("Pesquisando numero: "+objMessage.getString("phone"));
+
+                        contactId = getContactIdByNumber(objMessage.getString("phone"));
+                        String contactName = getContactDisplayNameByNumber(objMessage.getString("phone"));
+
+                        returnObject.put("id",contactId);
+                        returnObject.put("name",contactName);
+
+                        sendMessage(returnObject.toString());
+                        break;
+                    default:
+                        addMessageToList(message);
+                        returnObject.put("message",messageReturn);
+                        sendMessage(returnObject.toString());
+                        break;
                 }
 
             } catch (Exception e) {
-                addMessageToList(message);
-                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive][Exception] "+ message);
+                addMessageToList(e.getMessage());
+                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive][Exception] "+ e.getMessage());
             }
         }
     };
@@ -141,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
+    //falta adicionar nos contatos
     public void addContact(String phoneNumber) throws OperationApplicationException, RemoteException {
         ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
         int rawContactID = ops.size();
@@ -170,11 +220,34 @@ public class MainActivity extends AppCompatActivity {
 
     public String getContactDisplayNameByNumber(String number) {
         Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
-        String name = "?";
+        String name = null;
 
         ContentResolver contentResolver = getContentResolver();
         Cursor contactLookup = contentResolver.query(uri, new String[] {BaseColumns._ID,
                 ContactsContract.PhoneLookup.DISPLAY_NAME }, null, null, null);
+
+        try {
+            if (contactLookup != null && contactLookup.getCount() > 0) {
+                contactLookup.moveToNext();
+                name = contactLookup.getString(contactLookup.getColumnIndex(ContactsContract.Data.DISPLAY_NAME));
+                //String contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
+            }
+        } finally {
+            if (contactLookup != null) {
+                contactLookup.close();
+            }
+        }
+
+        return name;
+    }
+
+    public String getContactIdByNumber(String number) {
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
+        String name = null;
+
+        ContentResolver contentResolver = getContentResolver();
+        Cursor contactLookup = contentResolver.query(uri, new String[] {BaseColumns._ID,
+                ContactsContract.PhoneLookup._ID }, null, null, null);
 
         try {
             if (contactLookup != null && contactLookup.getCount() > 0) {
@@ -222,5 +295,13 @@ public class MainActivity extends AppCompatActivity {
                         grantResults);
 
 
+    }
+
+    public void sendMessage(String message){
+        Intent intent = new Intent(MainActivity.filterBroadCastMessageOut);
+        intent.putExtra("message", message);
+        String returnSocketSend = "[MainActivity][sendMessage] Enviando mesage para UpdaterService: "+message;
+        Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, returnSocketSend);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 }
