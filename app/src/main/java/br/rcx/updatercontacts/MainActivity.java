@@ -2,6 +2,7 @@ package br.rcx.updatercontacts;
 
 import android.Manifest;
 import android.content.*;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -9,6 +10,8 @@ import android.provider.ContactsContract;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -66,16 +69,9 @@ public class MainActivity extends AppCompatActivity {
             Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][onCreate] "+ e.getMessage());
         }
 
-        try {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{ Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS }, 12345);
+       ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS }, 12345);
 
-            addContact("Vinicius","+55 51 95412459");
-        } catch (OperationApplicationException e) {
-            addMessageToList("[MainActivity] "+e.getMessage());
-        } catch (RemoteException e) {
-            addMessageToList("[MainActivity] "+e.getMessage());
-        }
+        //addContact("Vinicius","+55 51 95412459");
 
     }
 
@@ -157,6 +153,19 @@ public class MainActivity extends AppCompatActivity {
                 .build());
 
         getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults)
+    {
+        super
+                .onRequestPermissionsResult(requestCode,
+                        permissions,
+                        grantResults);
+
 
     }
 }
