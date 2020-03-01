@@ -3,9 +3,11 @@ package br.rcx.updatercontacts;
 import android.Manifest;
 import android.content.*;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -71,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
        ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS }, 12345);
 
-        //addContact("Vinicius","+55 51 95412459");
+        //addContact("+55 51 95412459");
 
     }
 
@@ -100,7 +102,17 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject objMessage = new JSONObject(message);
                 Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive] message: "+objMessage.toString());
                 addMessageToList(objMessage.toString());
-//                addContact("teste","teste");
+
+                if(objMessage.getString("action").equals("add_contact")){
+                    addContact(objMessage.getString("phone"));
+                    addMessageToList("Adicionado numero: "+objMessage.getString("phone"));
+                }
+
+                if(objMessage.getString("action").equals("get_contact")){
+                   getContactDisplayNameByNumber(objMessage.getString("phone"));
+                    addMessageToList("Pesquisando numero: "+objMessage.getString("phone"));
+                }
+
             } catch (Exception e) {
                 addMessageToList(message);
                 Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive][Exception] "+ message);
@@ -130,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void addContact(String displayName, String phoneNumber) throws OperationApplicationException, RemoteException {
+    public void addContact(String phoneNumber) throws OperationApplicationException, RemoteException {
         ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
         int rawContactID = ops.size();
 
@@ -142,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
         ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
                 .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactID)
                 .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, displayName)
+                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, phoneNumber)
                 .build());
 
         ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
@@ -155,6 +167,49 @@ public class MainActivity extends AppCompatActivity {
         getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
 
     }
+
+    public String getContactDisplayNameByNumber(String number) {
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
+        String name = "?";
+
+        ContentResolver contentResolver = getContentResolver();
+        Cursor contactLookup = contentResolver.query(uri, new String[] {BaseColumns._ID,
+                ContactsContract.PhoneLookup.DISPLAY_NAME }, null, null, null);
+
+        try {
+            if (contactLookup != null && contactLookup.getCount() > 0) {
+                contactLookup.moveToNext();
+                name = contactLookup.getString(contactLookup.getColumnIndex(ContactsContract.Data.DISPLAY_NAME));
+                //String contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
+            }
+        } finally {
+            if (contactLookup != null) {
+                contactLookup.close();
+            }
+        }
+
+        return name;
+    }
+
+
+    public String hasWhatsapp(String contactID) {
+        String rowContactId = null;
+        boolean hasWhatsApp;
+
+        String[] projection = new String[]{ContactsContract.RawContacts._ID};
+        String selection = ContactsContract.Data.CONTACT_ID + " = ? AND account_type IN (?,?)";
+        String[] selectionArgs = new String[]{contactID, "com.whatsapp","com.whatsapp.w4b"};
+        Cursor cursor = getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI, projection, selection, selectionArgs, null);
+        if (cursor != null) {
+            hasWhatsApp = cursor.moveToNext();
+            if (hasWhatsApp) {
+                rowContactId = cursor.getString(0);
+            }
+            cursor.close();
+        }
+        return rowContactId;
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
