@@ -113,64 +113,65 @@ public class MainActivity extends AppCompatActivity {
                 Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[MainActivity][BroadcastReceiver][onReceive] message: " + objMessage.toString());
                 addMessageToList(objMessage.toString());
             }catch(Exception e) {
-                objMessage = new JSONObject();
-                try {
-                    objMessage.put("action","");
-                } catch (JSONException ex) {
-                    ex.printStackTrace();
-                }
+                objMessage = null;
             }
 
             try{
-                JSONObject returnObject = new JSONObject();
-                String messageReturn = "esta acao nao existe";
-                String contactId = null;
 
-                switch(objMessage.getString("action")){
-                    case "add_contact":
-                        contactId = getContactIdByNumber(objMessage.getString("phone"));
+                if(objMessage != null) {
+                    JSONObject returnObject = new JSONObject();
+                    String messageReturn = "esta acao nao existe";
+                    String contactId = null;
+                    addMessageToList("ação: " + objMessage.getString("action"));
+                    switch (objMessage.getString("action")) {
+                        case "add_contact":
+                            contactId = getContactIdByNumber(objMessage.getString("phone"));
 
-                        if(contactId != null) {
-                            messageReturn = "Numero: " + objMessage.getString("phone")+" já existe";
-                            addMessageToList(messageReturn);
+                            if (contactId != null) {
+                                messageReturn = "Numero: " + objMessage.getString("phone") + " já existe";
+                                addMessageToList(messageReturn);
 
-                            returnObject.put("message",messageReturn);
+                                returnObject.put("message", messageReturn);
+                                sendMessage(returnObject.toString());
+                            } else {
+                                addContact(objMessage.getString("phone"));
+                                messageReturn = "Adicionado numero: " + objMessage.getString("phone");
+                                addMessageToList(messageReturn);
+
+                                returnObject.put("message", messageReturn);
+                                sendMessage(returnObject.toString());
+                            }
+
+                            break;
+                        case "get_contact":
+                            addMessageToList("Pesquisando numero: " + objMessage.getString("phone"));
+
+                            contactId = getContactIdByNumber(objMessage.getString("phone"));
+
+                            if (contactId == null) {
+                                returnObject.put("message", "contato não encontrado");
+                            }else{
+                                String contactName = getContactDisplayNameByNumber(objMessage.getString("phone"));
+                                String hasWhats =  hasWhatsapp(contactId);
+                                returnObject.put("message", "contato encontrado");
+                                returnObject.put("id", contactId);
+                                returnObject.put("contactId", contactId);
+                                returnObject.put("contactName", contactName);
+                                returnObject.put("hasWhats", hasWhats);
+                            }
+
+                            addMessageToList(returnObject.toString());
                             sendMessage(returnObject.toString());
-                        }else{
-                            addContact(objMessage.getString("phone"));
-                            messageReturn = "Adicionado numero: " + objMessage.getString("phone");
+                            break;
+                        default:
                             addMessageToList(messageReturn);
-
-                            returnObject.put("message",messageReturn);
+                            returnObject.put("message", messageReturn);
                             sendMessage(returnObject.toString());
-                        }
-
-                        break;
-                    case "get_contact":
-                        addMessageToList("Pesquisando numero: "+objMessage.getString("phone"));
-
-                        contactId = getContactIdByNumber(objMessage.getString("phone"));
-                        String contactName = getContactDisplayNameByNumber(objMessage.getString("phone"));
-
-                        String hasWhats = "";
-                        if(contactId != null){
-                            hasWhats = hasWhatsapp(contactId);
-                        }
-
-                        returnObject.put("id",contactId);
-                        returnObject.put("contactId",contactId);
-                        returnObject.put("contactName",contactName);
-                        returnObject.put("hasWhats",hasWhats);
-
-                        sendMessage(returnObject.toString());
-                        break;
-                    default:
-                        addMessageToList(message);
-                        returnObject.put("message",messageReturn);
-                        sendMessage(returnObject.toString());
-                        break;
+                            break;
+                    }
+                }else{
+                    addMessageToList(message);
                 }
-
             } catch (Exception e) {
                 addMessageToList(e.getMessage());
                 Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive][Exception] "+ e.getMessage());
