@@ -1,13 +1,15 @@
 package br.rcx.updatercontacts;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.Manifest;
+import android.content.*;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.RemoteException;
+import android.provider.ContactsContract;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -64,7 +66,19 @@ public class MainActivity extends AppCompatActivity {
             Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][onCreate] "+ e.getMessage());
         }
 
+        try {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{ Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS }, 12345);
+
+            addContact("Vinicius","+55 51 95412459");
+        } catch (OperationApplicationException e) {
+            addMessageToList("[MainActivity] "+e.getMessage());
+        } catch (RemoteException e) {
+            addMessageToList("[MainActivity] "+e.getMessage());
+        }
+
     }
+
 
     public void addMessageToList(String message){
         String currentDateTimeString = java.text.DateFormat.getDateTimeInstance().format(new Date());
@@ -90,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject objMessage = new JSONObject(message);
                 Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive] message: "+objMessage.toString());
                 addMessageToList(objMessage.toString());
+//                addContact("teste","teste");
             } catch (Exception e) {
                 addMessageToList(message);
                 Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive][Exception] "+ message);
@@ -117,5 +132,31 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void addContact(String displayName, String phoneNumber) throws OperationApplicationException, RemoteException {
+        ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+        int rawContactID = ops.size();
+
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                .build());
+
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactID)
+                .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, displayName)
+                .build());
+
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactID)
+                .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber)
+                .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+                .build());
+
+        getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+
     }
 }

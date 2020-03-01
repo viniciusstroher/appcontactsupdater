@@ -1,9 +1,13 @@
 package br.rcx.updatercontacts;
 
 import android.app.Service;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.*;
+import android.provider.ContactsContract;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
@@ -104,5 +108,23 @@ public class UpdaterService extends Service {
         return null;
     }
 
+    public void addContact(String displayName, String phoneNumber){
+        ContentValues contentValues = new ContentValues();
+        Uri rawContactUri = getContentResolver().insert(ContactsContract.RawContacts.CONTENT_URI, contentValues);
+        Uri addContactsUri = ContactsContract.Data.CONTENT_URI;
 
+        long rawContactId = ContentUris.parseId(rawContactUri);
+        contentValues.put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId);
+
+        // Each contact must has an mime type to avoid java.lang.IllegalArgumentException: mimetype is required error.
+        contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
+        // Put contact display name value.
+        contentValues.put(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, displayName);
+
+        contentValues.put(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber);
+        int phoneContactType = ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE;
+        contentValues.put(ContactsContract.CommonDataKinds.Phone.TYPE, phoneContactType);
+
+        getContentResolver().insert(addContactsUri, contentValues);
+    }
 }
