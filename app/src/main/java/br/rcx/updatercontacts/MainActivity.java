@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
                                 returnObject.put("id", contactId);
                                 returnObject.put("contactId", contactId);
                                 returnObject.put("contactName", contactName);
-                                returnObject.put("hasWhats", hasWhats);
+                                returnObject.put("hasWhats", hasWhats == null ? "0":"1");
                             }
 
                             addMessageToList(returnObject.toString());
@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
                             returnObject.put("id", contactId);
                             returnObject.put("contactId", contactId);
                             returnObject.put("contactName", contactName);
-                            returnObject.put("hasWhats", hasWhats);
+                            returnObject.put("hasWhats", hasWhats == null ? "0":"1");
 
                             addMessageToList(returnObject.toString());
                             sendMessage(returnObject.toString());
@@ -246,6 +246,15 @@ public class MainActivity extends AppCompatActivity {
                 .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber)
                 .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
                 .build());
+
+        String groupId = "6"; //my contacts group
+        //grupo
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactID)
+                .withValue(ContactsContract.CommonDataKinds.GroupMembership.MIMETYPE,
+                        ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE)
+                .withValue(ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID,
+                        groupId).build());
 
         getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
 
