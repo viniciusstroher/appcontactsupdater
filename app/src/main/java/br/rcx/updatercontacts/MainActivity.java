@@ -166,7 +166,6 @@ public class MainActivity extends AppCompatActivity {
                             contactId = getContactIdByNumber(objMessage.getString("phone"));
 
                             if (contactId == null) {
-
                                 addContact(objMessage.getString("phone"));
                                 messageReturn = "Adicionado numero: " + objMessage.getString("phone");
                                 addMessageToList(messageReturn);
