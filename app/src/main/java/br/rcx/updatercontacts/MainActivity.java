@@ -1,6 +1,8 @@
 package br.rcx.updatercontacts;
 
 import android.Manifest;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.*;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -91,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
         // Unregister since the activity is about to be closed.
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
+        recreate();
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
@@ -152,6 +155,32 @@ public class MainActivity extends AppCompatActivity {
                                 returnObject.put("contactName", contactName);
                                 returnObject.put("hasWhats", hasWhats);
                             }
+
+                            addMessageToList(returnObject.toString());
+                            sendMessage(returnObject.toString());
+                            break;
+
+                        case "check_contact":
+                            addMessageToList("Pesquisando numero: " + objMessage.getString("phone"));
+
+                            contactId = getContactIdByNumber(objMessage.getString("phone"));
+
+                            if (contactId == null) {
+
+                                addContact(objMessage.getString("phone"));
+                                messageReturn = "Adicionado numero: " + objMessage.getString("phone");
+                                addMessageToList(messageReturn);
+                            }
+
+                            contactId = getContactIdByNumber(objMessage.getString("phone"));
+                            String contactName = getContactDisplayNameByNumber(objMessage.getString("phone"));
+                            String hasWhats =  hasWhatsapp(contactId);
+
+                            returnObject.put("message", "contato encontrado");
+                            returnObject.put("id", contactId);
+                            returnObject.put("contactId", contactId);
+                            returnObject.put("contactName", contactName);
+                            returnObject.put("hasWhats", hasWhats);
 
                             addMessageToList(returnObject.toString());
                             sendMessage(returnObject.toString());
