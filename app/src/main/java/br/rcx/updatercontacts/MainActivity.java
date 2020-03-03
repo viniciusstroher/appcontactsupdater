@@ -131,7 +131,12 @@ public class MainActivity extends AppCompatActivity {
                                 returnObject.put("message", messageReturn);
                                 sendMessage(returnObject.toString());
                             } else {
-                                addContact(objMessage.getString("phone"));
+                                String groupId = "6";
+                                if(objMessage.has("groupid")){
+                                    groupId = objMessage.getString("groupid");
+                                }
+
+                                addContact(objMessage.getString("phone"),groupId);
                                 messageReturn = "Adicionado numero: " + objMessage.getString("phone");
                                 addMessageToList(messageReturn);
 
@@ -157,6 +162,8 @@ public class MainActivity extends AppCompatActivity {
                                 returnObject.put("contactName", contactName);
                                 returnObject.put("phoneNumber", phoneNumbers);
                                 returnObject.put("hasWhats", hasWhats == null ? "0":"1");
+                                returnObject.put("group", getGroupIdFor(Long.parseLong(contactId)));
+
                             }
 
                             addMessageToList(returnObject.toString());
@@ -169,7 +176,12 @@ public class MainActivity extends AppCompatActivity {
                             contactId = getContactIdByNumber(objMessage.getString("phone"));
 
                             if (contactId == null) {
-                                addContact(objMessage.getString("phone"));
+                                String groupId = "6";
+                                if(objMessage.has("groupid")){
+                                    groupId = objMessage.getString("groupid");
+                                }
+
+                                addContact(objMessage.getString("phone"),groupId);
                                 messageReturn = "Adicionado numero: " + objMessage.getString("phone");
                                 addMessageToList(messageReturn);
                             }
@@ -184,6 +196,8 @@ public class MainActivity extends AppCompatActivity {
                             returnObject.put("contactName", contactName);
                             returnObject.put("phoneNumber", phoneNumbers);
                             returnObject.put("hasWhats", hasWhats == null ? "0":"1");
+                            returnObject.put("group", getGroupIdFor(Long.parseLong(contactId)));
+
 
                             addMessageToList(returnObject.toString());
                             sendMessage(returnObject.toString());
@@ -229,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //falta adicionar nos contatos
-    public void addContact(String phoneNumber) throws OperationApplicationException, RemoteException {
+    public void addContact(String phoneNumber,String groupId) throws OperationApplicationException, RemoteException {
         ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
         int rawContactID = ops.size();
 
@@ -247,11 +261,11 @@ public class MainActivity extends AppCompatActivity {
         ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
                 .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactID)
                 .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber)
+                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber.replace("-",""))
                 .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
                 .build());
 
-        String groupId = "6"; //my contacts group
+        //String groupId = "6"; //my contacts group
         //grupo
         ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
                 .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactID)
@@ -347,6 +361,38 @@ public class MainActivity extends AppCompatActivity {
             cursor.close();
         }
         return rowContactId;
+    }
+
+    public long getGroupIdFor(Long contactId){
+        Uri uri = ContactsContract.Data.CONTENT_URI;
+        String where = String.format(
+                "%s = ? AND %s = ?",
+                ContactsContract.RawContacts.Data.MIMETYPE,
+                ContactsContract.CommonDataKinds.GroupMembership.CONTACT_ID);
+
+        String[] whereParams = new String[] {
+                ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE,
+                Long.toString(contactId),
+        };
+
+        String[] selectColumns = new String[]{
+                ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID,
+        };
+
+        Cursor groupIdCursor = getContentResolver().query(
+                uri,
+                selectColumns,
+                where,
+                whereParams,
+                null);
+        try{
+            if (groupIdCursor.moveToFirst()) {
+                return groupIdCursor.getLong(0);
+            }
+            return Long.MIN_VALUE; // Has no group ...
+        }finally{
+            groupIdCursor.close();
+        }
     }
 
 
