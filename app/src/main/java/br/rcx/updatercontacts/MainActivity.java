@@ -136,7 +136,13 @@ public class MainActivity extends AppCompatActivity {
                                     groupId = objMessage.getString("groupid");
                                 }
 
-                                addContact(objMessage.getString("phone"),groupId);
+                                boolean replace = false;
+                                if(objMessage.has("replace")){
+                                    replace = objMessage.getString("replace").equals("0") ? false:true ;
+                                }
+
+                                addContact(objMessage.getString("phone"),groupId,replace);
+
                                 messageReturn = "Adicionado numero: " + objMessage.getString("phone");
                                 addMessageToList(messageReturn);
 
@@ -181,7 +187,13 @@ public class MainActivity extends AppCompatActivity {
                                     groupId = objMessage.getString("groupid");
                                 }
 
-                                addContact(objMessage.getString("phone"),groupId);
+                                boolean replace = false;
+                                if(objMessage.has("replace")){
+                                    replace = objMessage.getString("replace").equals("0") ? false:true ;
+                                }
+
+                                addContact(objMessage.getString("phone"),groupId,replace);
+
                                 messageReturn = "Adicionado numero: " + objMessage.getString("phone");
                                 addMessageToList(messageReturn);
                             }
@@ -243,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //falta adicionar nos contatos
-    public void addContact(String phoneNumber,String groupId) throws OperationApplicationException, RemoteException {
+    public void addContact(String phoneNumber,String groupId,boolean replace) throws OperationApplicationException, RemoteException {
         ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
         int rawContactID = ops.size();
 
@@ -258,10 +270,14 @@ public class MainActivity extends AppCompatActivity {
                 .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, phoneNumber.replace(" ",""))
                 .build());
 
+        String phoneReplace = phoneNumber;
+        if(replace){
+            phoneReplace = phoneNumber.replace("-","");
+        }
         ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
                 .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactID)
                 .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber.replace("-",""))
+                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneReplace)
                 .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
                 .build());
 
