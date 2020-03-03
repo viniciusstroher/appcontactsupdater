@@ -110,6 +110,8 @@ public class MainActivity extends AppCompatActivity {
             //recebe message que vier pelo brodcast do socket
             Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive] Mensagem recebida ");
             String message = intent.getStringExtra("message");
+            Boolean returnMEssage = intent.getBooleanExtra("return",false);
+
             JSONObject objMessage = null;
 
             try {
@@ -121,9 +123,9 @@ public class MainActivity extends AppCompatActivity {
             }
 
             try{
+                JSONObject returnObject = new JSONObject();
+                if(objMessage != null && returnMEssage) {
 
-                if(objMessage != null) {
-                    JSONObject returnObject = new JSONObject();
                     String messageReturn = "esta acao nao existe";
                     String contactId = null;
                     addMessageToList("ação: " + objMessage.getString("action"));
@@ -224,6 +226,7 @@ public class MainActivity extends AppCompatActivity {
                         default:
                             addMessageToList(messageReturn);
                             returnObject.put("message", messageReturn);
+                            returnObject.put("group", getGroupIdFor(Long.parseLong(contactId)));
                             sendMessage(returnObject.toString());
                             break;
                     }

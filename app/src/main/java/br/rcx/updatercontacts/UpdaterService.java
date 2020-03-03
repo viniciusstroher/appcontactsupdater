@@ -41,21 +41,21 @@ public class UpdaterService extends Service {
         String startSocketLog = "[UpdaterService][UpdaterService] Servidor iniciado na porta "+serverPort;
         Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, startSocketLog);
 
-        sendMessage("UpdaterService iniciando");
+        sendMessage("UpdaterService iniciando",false);
 
         socketThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                sendMessage("Iniciando servico de socket: "+isRunning);
+                sendMessage("Iniciando servico de socket: "+isRunning,false);
                 while(isRunning) {
                     Socket client = null;
                     try {
-                        sendMessage("Esperando por cliente");
+                        sendMessage("Esperando por cliente",false);
                         client = server.accept();
-                        sendMessage("Cliente conectado: "+client.getInetAddress().getHostAddress());
+                        sendMessage("Cliente conectado: "+client.getInetAddress().getHostAddress(),false);
                     } catch (Exception e) {
                         Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][handleSocketProcess][Exception] " + e.getMessage());
-                        sendMessage("Nenhum cliente conectado");
+                        sendMessage("Nenhum cliente conectado",false);
                         client = null;
                     }
 
@@ -75,7 +75,7 @@ public class UpdaterService extends Service {
                         if(entry != null) {
 
                                 String entryData = entry.nextLine();
-                                sendMessage(entryData);
+                                sendMessage(entryData,true);
                                 boolean waitReturnCommand = true;
                                 while(waitReturnCommand){
                                     //espera receber a message do broadcast
@@ -85,9 +85,9 @@ public class UpdaterService extends Service {
                                         try {
                                             outputStream = new DataOutputStream(client.getOutputStream());
                                             outputStream.writeUTF(messageBack);
-                                            sendMessage("Message enviada ["+client.getInetAddress().getHostAddress()+"] "+messageBack);
+                                            sendMessage("Message enviada ["+client.getInetAddress().getHostAddress()+"] "+messageBack,false);
                                         } catch (IOException e) {
-                                            sendMessage("Erro ao enviar message ao socket");
+                                            sendMessage("Erro ao enviar message ao socket",false);
                                             e.printStackTrace();
                                         }
 
@@ -126,9 +126,10 @@ public class UpdaterService extends Service {
 
     }
 
-    public void sendMessage(String message){
+    public void sendMessage(String message,boolean waitForReturn){
         Intent intent = new Intent(MainActivity.filterBroadCastMessageIn);
         intent.putExtra("message", message);
+        intent.putExtra("return", waitForReturn);
         String startSocketLog = "[UpdaterService][sendMessage] Enviando mesage para MainActivity: "+message;
         Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, startSocketLog);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
