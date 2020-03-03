@@ -9,6 +9,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
@@ -83,8 +84,12 @@ public class UpdaterService extends Service {
                                     if(messageBack != null){
                                         DataOutputStream outputStream = null;
                                         try {
-                                            outputStream = new DataOutputStream(client.getOutputStream());
-                                            outputStream.writeUTF(messageBack);
+//                                            outputStream = new DataOutputStream(client.getOutputStream());
+//                                            outputStream.pr(messageBack);
+                                            PrintWriter out = new PrintWriter(client.getOutputStream()); //Gets output to connection
+
+                                            out.println(messageBack);
+                                            out.flush();
                                             sendMessage("Message enviada ["+client.getInetAddress().getHostAddress()+"] "+messageBack,false);
                                         } catch (IOException e) {
                                             sendMessage("Erro ao enviar message ao socket",false);
