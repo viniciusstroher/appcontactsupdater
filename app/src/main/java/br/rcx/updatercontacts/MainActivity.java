@@ -1,6 +1,8 @@
 package br.rcx.updatercontacts;
 
 import android.Manifest;
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.*;
@@ -85,7 +87,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void addMessageToList(String message){
         String currentDateTimeString = java.text.DateFormat.getDateTimeInstance().format(new Date());
+//        arrayListMessages.re
         arrayListMessages.add("["+currentDateTimeString+"] "+message);
+
+        if(arrayListMessages.size() > 20) {
+            arrayListMessages.clear();
+        }
         ((ArrayAdapter<String>) listView.getAdapter()).notifyDataSetChanged();
     }
 
