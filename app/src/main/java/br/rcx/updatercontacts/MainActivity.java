@@ -25,6 +25,7 @@ import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -149,10 +150,12 @@ public class MainActivity extends AppCompatActivity {
                             }else{
                                 String contactName = getContactDisplayNameByNumber(objMessage.getString("phone"));
                                 String hasWhats =  hasWhatsapp(contactId);
+                                JSONArray phoneNumbers = getPhoneNumbers(contactId);
                                 returnObject.put("message", "contato encontrado");
                                 returnObject.put("id", contactId);
                                 returnObject.put("contactId", contactId);
                                 returnObject.put("contactName", contactName);
+                                returnObject.put("phoneNumber", phoneNumbers);
                                 returnObject.put("hasWhats", hasWhats == null ? "0":"1");
                             }
 
@@ -174,11 +177,12 @@ public class MainActivity extends AppCompatActivity {
                             contactId = getContactIdByNumber(objMessage.getString("phone"));
                             String contactName = getContactDisplayNameByNumber(objMessage.getString("phone"));
                             String hasWhats =  hasWhatsapp(contactId);
-
+                            JSONArray phoneNumbers = getPhoneNumbers(contactId);
                             returnObject.put("message", "contato encontrado");
                             returnObject.put("id", contactId);
                             returnObject.put("contactId", contactId);
                             returnObject.put("contactName", contactName);
+                            returnObject.put("phoneNumber", phoneNumbers);
                             returnObject.put("hasWhats", hasWhats == null ? "0":"1");
 
                             addMessageToList(returnObject.toString());
@@ -306,6 +310,26 @@ public class MainActivity extends AppCompatActivity {
         return name;
     }
 
+    public JSONArray getPhoneNumbers(String contactId) throws JSONException {
+        JSONArray r = new JSONArray();
+        ContentResolver cr = getContentResolver();
+        ArrayList<String> phoneNumber = new ArrayList<String>();
+        // IF HAS NUMBER THEN GET ALL
+        Cursor pCur = cr.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                new String[]{contactId}, null);
+
+        String number = null;
+        int x = 0;
+        while (pCur.moveToNext()){
+            number = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            r.put(x,number);
+            x++;
+        }
+        pCur.close();
+        return r;
+    }
 
     public String hasWhatsapp(String contactID) {
         String rowContactId = null;
