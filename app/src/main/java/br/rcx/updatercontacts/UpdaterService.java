@@ -94,6 +94,8 @@ public class UpdaterService extends Service {
                                         } catch (IOException e) {
                                             sendMessage("Erro ao enviar message ao socket",false);
                                             e.printStackTrace();
+                                        } finally {
+                                            
                                         }
 
                                         messageBack = null;
