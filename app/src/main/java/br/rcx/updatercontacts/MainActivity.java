@@ -57,8 +57,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
-
         listView = (ListView) findViewById(R.id.listLog);
         adapter = new ArrayAdapter<String>(this, R.layout.simple_row, arrayListMessages);
         listView.setAdapter(adapter);
@@ -87,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void addMessageToList(String message){
         String currentDateTimeString = java.text.DateFormat.getDateTimeInstance().format(new Date());
-//        arrayListMessages.re
         arrayListMessages.add("["+currentDateTimeString+"] "+message);
 
         if(arrayListMessages.size() > 20) {
@@ -109,129 +106,22 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent){
             //recebe message que vier pelo brodcast do socket
             Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive] Mensagem recebida ");
+
+            String type = intent.getStringExtra("type");
             String message = intent.getStringExtra("message");
             Boolean returnMEssage = intent.getBooleanExtra("return",false);
 
-            JSONObject objMessage = null;
-
-            try {
-                objMessage = new JSONObject(message);
-                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[MainActivity][BroadcastReceiver][onReceive] message: " + objMessage.toString());
-                addMessageToList(objMessage.toString());
-            }catch(Exception e) {
-                objMessage = null;
-            }
-
             try{
-                JSONObject returnObject = new JSONObject();
-                if(objMessage != null && returnMEssage) {
-
-                    String messageReturn = "esta acao nao existe";
-                    String contactId = null;
-                    addMessageToList("ação: " + objMessage.getString("action"));
-                    switch (objMessage.getString("action")) {
-                        case "add_contact":
-                            contactId = getContactIdByNumber(objMessage.getString("phone"));
-
-                            if (contactId != null) {
-                                messageReturn = "Numero: " + objMessage.getString("phone") + " já existe";
-                                addMessageToList(messageReturn);
-
-                                returnObject.put("message", messageReturn);
-                                sendMessage(returnObject.toString());
-                            } else {
-                                String groupId = "6";
-                                if(objMessage.has("groupid")){
-                                    groupId = objMessage.getString("groupid");
-                                }
-
-                                boolean replace = false;
-                                if(objMessage.has("replace")){
-                                    replace = objMessage.getString("replace").equals("0") ? false:true ;
-                                }
-
-                                addContact(objMessage.getString("phone"),groupId,replace);
-
-                                messageReturn = "Adicionado numero: " + objMessage.getString("phone");
-                                addMessageToList(messageReturn);
-
-                                returnObject.put("message", messageReturn);
-                                sendMessage(returnObject.toString());
-                            }
-
-                            break;
-                        case "get_contact":
-                            addMessageToList("Pesquisando numero: " + objMessage.getString("phone"));
-
-                            contactId = getContactIdByNumber(objMessage.getString("phone"));
-
-                            if (contactId == null) {
-                                returnObject.put("message", "contato não encontrado");
-                            }else{
-                                String contactName = getContactDisplayNameByNumber(objMessage.getString("phone"));
-                                String hasWhats =  hasWhatsapp(contactId);
-                                JSONArray phoneNumbers = getPhoneNumbers(contactId);
-                                returnObject.put("message", "contato encontrado");
-                                returnObject.put("id", contactId);
-                                returnObject.put("contactId", contactId);
-                                returnObject.put("contactName", contactName);
-                                returnObject.put("phoneNumber", phoneNumbers);
-                                returnObject.put("hasWhats", hasWhats == null ? "0":"1");
-                                returnObject.put("group", getGroupIdFor(Long.parseLong(contactId)));
-
-                            }
-
-                            addMessageToList(returnObject.toString());
-                            sendMessage(returnObject.toString());
-                            break;
-
-                        case "check_contact":
-                            addMessageToList("Pesquisando numero: " + objMessage.getString("phone"));
-
-                            contactId = getContactIdByNumber(objMessage.getString("phone"));
-
-                            if (contactId == null) {
-                                String groupId = "6";
-                                if(objMessage.has("groupid")){
-                                    groupId = objMessage.getString("groupid");
-                                }
-
-                                boolean replace = false;
-                                if(objMessage.has("replace")){
-                                    replace = objMessage.getString("replace").equals("0") ? false:true ;
-                                }
-
-                                addContact(objMessage.getString("phone"),groupId,replace);
-
-                                messageReturn = "Adicionado numero: " + objMessage.getString("phone");
-                                addMessageToList(messageReturn);
-                            }
-
-                            contactId = getContactIdByNumber(objMessage.getString("phone"));
-                            String contactName = getContactDisplayNameByNumber(objMessage.getString("phone"));
-                            String hasWhats =  hasWhatsapp(contactId);
-                            JSONArray phoneNumbers = getPhoneNumbers(contactId);
-                            returnObject.put("message", "contato encontrado");
-                            returnObject.put("id", contactId);
-                            returnObject.put("contactId", contactId);
-                            returnObject.put("contactName", contactName);
-                            returnObject.put("phoneNumber", phoneNumbers);
-                            returnObject.put("hasWhats", hasWhats == null ? "0":"1");
-                            returnObject.put("group", getGroupIdFor(Long.parseLong(contactId)));
-
-
-                            addMessageToList(returnObject.toString());
-                            sendMessage(returnObject.toString());
-                            break;
-                        default:
-                            addMessageToList(messageReturn);
-                            returnObject.put("message", messageReturn);
-                            returnObject.put("group", getGroupIdFor(Long.parseLong(contactId)));
-                            sendMessage(returnObject.toString());
-                            break;
-                    }
-                }else{
-                    addMessageToList(message);
+                switch (type){
+                    case "console":
+                        addMessageToList(message);
+                        break;
+                    case "socket":
+                        api(message);
+                        break;
+                    default:
+                        api(message);
+                        break;
                 }
             } catch (Exception e) {
                 addMessageToList(e.getMessage());
@@ -441,5 +331,127 @@ public class MainActivity extends AppCompatActivity {
         String returnSocketSend = "[MainActivity][sendMessage] Enviando mesage para UpdaterService: "+message;
         Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, returnSocketSend);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+
+
+    public void api(String message) throws JSONException, OperationApplicationException, RemoteException {
+        //valida json
+        JSONObject objMessage = null;
+        try {
+            objMessage = new JSONObject(message);
+            Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[MainActivity][BroadcastReceiver][onReceive] message: " + objMessage.toString());
+            addMessageToList(objMessage.toString());
+        }catch(Exception e) {
+            objMessage = null;
+        }
+
+        JSONObject returnObject = new JSONObject();
+        String messageReturn = "esta acao nao existe";
+
+        if(objMessage == null) {
+            //json invalido retorna msg de error
+            returnObject.put("message", messageReturn);
+
+        }else {
+            //json valido valida no switch
+            String contactId = null;
+            addMessageToList("ação: " + objMessage.getString("action"));
+
+            //proura por ação
+            switch (objMessage.getString("action")) {
+                case "add_contact":
+                    addMessageToList("Adicionando numero: " + objMessage.getString("phone"));
+                    contactId = getContactIdByNumber(objMessage.getString("phone"));
+
+                    if (contactId != null) {
+                        messageReturn = "Numero: " + objMessage.getString("phone") + " já existe";
+                        returnObject.put("message", messageReturn);
+
+                    } else {
+                        String groupId = "6";
+                        if(objMessage.has("groupid")){
+                            groupId = objMessage.getString("groupid");
+                        }
+
+                        boolean replace = false;
+                        if(objMessage.has("replace")){
+                            replace = objMessage.getString("replace").equals("0") ? false:true ;
+                        }
+
+                        addContact(objMessage.getString("phone"),groupId,replace);
+
+                        messageReturn = "Adicionado numero: " + objMessage.getString("phone");
+                        returnObject.put("message", messageReturn);
+
+                    }
+
+                    break;
+                case "get_contact":
+                    addMessageToList("Pesquisando numero: " + objMessage.getString("phone"));
+                    contactId = getContactIdByNumber(objMessage.getString("phone"));
+
+                    if (contactId == null) {
+                        returnObject.put("message", "contato não encontrado");
+                    }else{
+                        String contactName = getContactDisplayNameByNumber(objMessage.getString("phone"));
+                        String hasWhats =  hasWhatsapp(contactId);
+                        JSONArray phoneNumbers = getPhoneNumbers(contactId);
+                        returnObject.put("message", "contato encontrado");
+                        returnObject.put("id", contactId);
+                        returnObject.put("contactId", contactId);
+                        returnObject.put("contactName", contactName);
+                        returnObject.put("phoneNumber", phoneNumbers);
+                        returnObject.put("hasWhats", hasWhats == null ? "0":"1");
+                        returnObject.put("group", getGroupIdFor(Long.parseLong(contactId)));
+
+                    }
+                    break;
+
+                case "check_contact":
+                    addMessageToList("Pesquisando numero: " + objMessage.getString("phone"));
+                    contactId = getContactIdByNumber(objMessage.getString("phone"));
+
+                    if (contactId == null) {
+                        String groupId = "6";
+                        if(objMessage.has("groupid")){
+                            groupId = objMessage.getString("groupid");
+                        }
+
+                        boolean replace = false;
+                        if(objMessage.has("replace")){
+                            replace = objMessage.getString("replace").equals("0") ? false:true ;
+                        }
+
+                        addContact(objMessage.getString("phone"),groupId,replace);
+
+                        messageReturn = "Adicionado numero: " + objMessage.getString("phone");
+                    }
+
+                    contactId = getContactIdByNumber(objMessage.getString("phone"));
+
+                    String contactName = getContactDisplayNameByNumber(objMessage.getString("phone"));
+                    String hasWhats =  hasWhatsapp(contactId);
+
+                    JSONArray phoneNumbers = getPhoneNumbers(contactId);
+                    returnObject.put("message", "contato encontrado");
+                    returnObject.put("id", contactId);
+                    returnObject.put("contactId", contactId);
+                    returnObject.put("contactName", contactName);
+                    returnObject.put("phoneNumber", phoneNumbers);
+                    returnObject.put("hasWhats", hasWhats == null ? "0":"1");
+                    returnObject.put("group", getGroupIdFor(Long.parseLong(contactId)));
+
+                    break;
+                default:
+                    returnObject.put("message", messageReturn);
+                    returnObject.put("group", getGroupIdFor(Long.parseLong(contactId)));
+                    break;
+            }
+        }
+
+        addMessageToList(messageReturn);
+        addMessageToList("Retornando: "+returnObject.toString());
+        sendMessage(returnObject.toString());
     }
 }
