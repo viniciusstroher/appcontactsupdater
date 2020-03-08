@@ -352,7 +352,6 @@ public class MainActivity extends AppCompatActivity {
         if(objMessage == null) {
             //json invalido retorna msg de error
             returnObject.put("message", messageReturn);
-
         }else {
             //json valido valida no switch
             String contactId = null;
@@ -407,7 +406,16 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                     break;
-
+                case "remove_contact":
+                    addMessageToList("Removendo numero: " + objMessage.getString("phone"));
+                    contactId = getContactIdByNumber(objMessage.getString("phone"));
+                    if (contactId == null) {
+                        returnObject.put("message", "contato não encontrado");
+                    }else{
+                        deleteContactById(contactId);
+                        returnObject.put("message", "contato "+objMessage.getString("phone")+" removido");
+                    }
+                    break;
                 case "check_contact":
                     addMessageToList("Pesquisando numero: " + objMessage.getString("phone"));
                     contactId = getContactIdByNumber(objMessage.getString("phone"));
@@ -454,4 +462,32 @@ public class MainActivity extends AppCompatActivity {
         addMessageToList("Retornando: "+returnObject.toString());
         sendMessage(returnObject.toString());
     }
+
+    public void deleteContactById(String localContactId)
+    {
+        ContentResolver cr = getContentResolver();
+        String rawWhere = ContactsContract.Contacts._ID + " = ? ";
+        String[] whereArgs1 = new String[]{localContactId};
+        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
+                null, rawWhere, whereArgs1, null);
+
+        if(cur != null && cur.getCount() > 0) {
+            while (cur.moveToNext()) {
+                try{
+                    String lookupKey = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
+                    Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
+                    cr.delete(uri, null, null);
+
+                }
+                catch(Exception e)
+                {
+                    System.out.println(e.getStackTrace());
+                }
+            }
+        }
+        if(cur != null)
+            cur.close();
+    }
+
+
 }
