@@ -1,11 +1,14 @@
 package br.rcx.updatercontacts;
 
 import android.app.Service;
+import android.appwidget.AppWidgetProviderInfo;
 import android.content.*;
 import android.net.Uri;
 import android.os.*;
 import android.provider.ContactsContract;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -20,30 +23,26 @@ public class UpdaterService extends Service {
     private int serverPort = 3322;
     private ServerSocket server;
     private Thread socketThread = null;
-    public boolean isRunning = true;
-
-    public String messageBack = null;
-    public LocalBroadcastManager lbm;
 
     public UpdaterService() throws IOException {
-        lbm = LocalBroadcastManager.getInstance(this);
-        lbm.registerReceiver(mMessageReceiver, new IntentFilter(MainActivity.filterBroadCastMessageOut));
-
         //inicia servidor
         server = new ServerSocket(serverPort);
         String startSocketLog = "[UpdaterService][UpdaterService] Servidor iniciado na porta "+serverPort;
         Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, startSocketLog);
 
         //envia mensagem para ser mostrada na lista (view)
-        sendMessage("console","UpdaterService iniciando",false);
+        sendMessageList("UpdaterService iniciando");
 
-        //inicia socket server para escutar requests
         socketThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                sendMessage("console","Iniciando servico de socket: "+isRunning,false);
-                while(isRunning) {
-                    handleClientRequest();
+                sendMessageList("Iniciando servico de socket");
+                while(true) {
+                    try {
+                        handleClientRequest();
+                    } catch (Exception e) {
+                        sendMessageList("handleClientRequest error:"+e.getMessage());
+                    }
                 }
             }
 
@@ -52,16 +51,17 @@ public class UpdaterService extends Service {
         socketThread.start();
     }
 
-    public void handleClientRequest(){
+    //cuida das msgs enviadas do cliente pelo socket
+    public void handleClientRequest() throws OperationApplicationException, RemoteException, JSONException {
         Socket client = null;
         try {
-            sendMessage("console","Esperando por cliente",false);
+            sendMessageList("Esperando por cliente");
             //espera por socket client
             client = server.accept();
-            sendMessage("console","Cliente conectado: "+client.getInetAddress().getHostAddress(),false);
+            sendMessageList("Cliente conectado: "+client.getInetAddress().getHostAddress());
         } catch (Exception e) {
             Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][handleSocketProcess][Exception] " + e.getMessage());
-            sendMessage("console","Nenhum cliente conectado",false);
+            sendMessageList("Nenhum cliente conectado");
             client = null;
         }
 
@@ -79,6 +79,8 @@ public class UpdaterService extends Service {
             } catch (IOException e) {
                 entry = null;
                 e.printStackTrace();
+                //se der problema no entry mata o client
+                closeSocket(client);
             }
 
             if(entry != null) {
@@ -88,35 +90,48 @@ public class UpdaterService extends Service {
                     entryData = entry.nextLine();
                 }catch (Exception e){
                     entryData = "";
-                    sendMessageSocket(client,messageBack);
-                    sendMessageSocket(client,messageBack);
+                    //se der problema mata o socket
+                    closeSocket(client);
                 }
 
-                sendMessage("socket",entryData,true);
-                boolean waitReturnCommand = true;
-                while(waitReturnCommand){
-                    //espera receber a message do broadcast
-                    //para processeguir
-                    if(messageBack != null){
-                        sendMessageSocket(client,messageBack);
-                        messageBack = null;
-                        waitReturnCommand = false;
+                //se veio alguma mensagem do socket do client manda para ser tratado
+                if(!entryData.equals("")) {
+                    JSONObject message;
+                    try {
+                        message = new JSONObject(entryData);
+                    } catch (JSONException e) {
+                        message = null;
+                        closeSocket(client);
+                    }
+
+                    if(message != null){
+                        Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][handleSocketProcess] " + entryData);
+                        try {
+                            JSONObject returnMessageSocket = Api.handleCommand(MainActivity.ctx, message);
+                            sendMessageSocket(client, returnMessageSocket.toString());
+                            sendMessageList("Message enviada ["+client.getInetAddress().getHostAddress()+"] "+returnMessageSocket.toString());
+                        }catch (Exception e){
+                            sendMessageList("Exception envio mensagem: "+e.getMessage());
+                        }
+
+                        closeSocket(client);
                     }
                 }
-
-                Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][handleSocketProcess] " + entryData);
-
-                try {
-                    client.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
             }
         }
     }
 
-
+    //disconecta socket
+    public static boolean closeSocket(Socket client){
+        try {
+            client.close();
+            sendMessageList("Fechando socket ["+client.getInetAddress().getHostAddress()+"] ");
+            return true;
+        } catch (IOException e) {
+            sendMessageList("Não foi possivel fechar socket ["+client.getInetAddress().getHostAddress()+"] ");
+            return false;
+        }
+    }
 
     //envia msg para o socket
     public void sendMessageSocket(Socket client,String messageBack){
@@ -125,32 +140,17 @@ public class UpdaterService extends Service {
             PrintWriter out = new PrintWriter(client.getOutputStream()); //Gets output to connection
             out.println(messageBack);
             out.flush();
-            sendMessage("console","Message enviada ["+client.getInetAddress().getHostAddress()+"] "+messageBack,false);
+            sendMessageList("Message enviada ["+client.getInetAddress().getHostAddress()+"] "+messageBack);
         } catch (IOException e) {
-            sendMessage("console","Erro ao enviar message ao socket",false);
+            sendMessageList("Erro ao enviar message ao socket");
             e.printStackTrace();
         }
     }
 
-
-
-    //recebe mensagens que MainActivity enviar
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //recebe message que vier pelo brodcast do socket
-            Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, "[UpdaterService][BroadcastReceiver][onReceive] Mensagem recebida ");
-            String message = intent.getStringExtra("message");
-            messageBack = message;
-        }
-    };
-
-    //envia msg para UpdaterService->class
-    public void sendMessage(String type,String message,boolean waitForReturn){
+    //envia msg para MainActivity->class
+    public void sendMessageList(String message){
         Intent intent = new Intent(MainActivity.filterBroadCastMessageIn);
-        intent.putExtra("type", type);
         intent.putExtra("message", message);
-        intent.putExtra("return", waitForReturn);
         String startSocketLog = "[UpdaterService][sendMessage] Enviando mesage para MainActivity: "+message;
         Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO, startSocketLog);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
