@@ -25,44 +25,100 @@ public class Api {
             //addMessageToList("ação: " + objMessage.getString("action"));
             if(!objMessage.has("action")) {
                 returnObject.put("message", messageReturn);
+            }else if(!objMessage.has("phone")){
+                messageReturn = "Parametro phone faltando";
+                returnObject.put("message", messageReturn);
             }else {
-                //proura por ação
-                switch (objMessage.getString("action")) {
-                    case "add_contact":
-                        //procura contato
-                        contactId = ContactService.getContactIdByNumber(ctx, objMessage.getString("phone"));
+                if(objMessage.getString("phone").equals("") || objMessage.isNull("phone")) {
+                    messageReturn = "Parametro phone não pode ser vazio";
+                    returnObject.put("message", messageReturn);
+                }else {
+                    //proura por ação
+                    switch (objMessage.getString("action")) {
+                        case "add_contact":
+                            //procura contato
+                            contactId = ContactService.getContactIdByNumber(ctx, objMessage.getString("phone"));
 
-                        //verifica se contato existe
-                        if (contactId != null) {
-                            messageReturn = "Numero: " + objMessage.getString("phone") + " já existe";
-                            returnObject.put("message", messageReturn);
-                        } else {
-                            String groupId = "6";
-                            if (objMessage.has("groupid")) {
-                                groupId = objMessage.getString("groupid");
+                            //verifica se contato existe
+                            if (contactId != null) {
+                                messageReturn = "Numero: " + objMessage.getString("phone") + " já existe";
+                                returnObject.put("message", messageReturn);
+                            } else {
+                                String groupId = "6";
+                                if (objMessage.has("groupid")) {
+                                    groupId = objMessage.getString("groupid");
+                                }
+
+                                boolean replace = false;
+                                if (objMessage.has("replace")) {
+                                    replace = objMessage.getString("replace").equals("0") ? false : true;
+                                }
+
+                                //adiciona contato aos contatos do android
+                                ContactService.addContact(ctx, objMessage.getString("phone"), groupId, replace);
+
+                                messageReturn = "Adicionado numero: " + objMessage.getString("phone");
+                                returnObject.put("message", messageReturn);
+                            }
+                            break;
+
+                        case "get_contact":
+                            contactId = ContactService.getContactIdByNumber(ctx, objMessage.getString("phone"));
+
+                            if (contactId == null) {
+                                returnObject.put("message", "contato não encontrado");
+                            } else {
+                                String contactName = ContactService.getContactDisplayNameByNumber(ctx, objMessage.getString("phone"));
+                                String hasWhats = ContactService.hasWhatsapp(ctx, contactId);
+                                JSONArray phoneNumbers = ContactService.getPhoneNumbers(ctx, contactId);
+                                returnObject.put("message", "contato encontrado");
+                                returnObject.put("id", contactId);
+                                returnObject.put("contactId", contactId);
+                                returnObject.put("contactName", contactName);
+                                returnObject.put("phoneNumber", phoneNumbers);
+                                returnObject.put("hasWhats", hasWhats == null ? "0" : "1");
+                                returnObject.put("group", ContactService.getGroupIdFor(ctx, Long.parseLong(contactId)));
+                            }
+                            break;
+
+                        case "remove_contact":
+
+                            contactId = ContactService.getContactIdByNumber(ctx, objMessage.getString("phone"));
+                            if (contactId == null) {
+                                returnObject.put("message", "contato não encontrado");
+                            } else {
+                                ContactService.deleteContactById(ctx, contactId);
+                                returnObject.put("message", "contato " + objMessage.getString("phone") + " removido");
+                            }
+                            break;
+
+                        case "check_contact":
+
+                            //pesquisa contato
+                            contactId = ContactService.getContactIdByNumber(ctx, objMessage.getString("phone"));
+
+                            if (contactId == null) {
+                                String groupId = "6";
+                                if (objMessage.has("groupid")) {
+                                    groupId = objMessage.getString("groupid");
+                                }
+
+                                boolean replace = false;
+                                if (objMessage.has("replace")) {
+                                    replace = objMessage.getString("replace").equals("0") ? false : true;
+                                }
+
+                                //adiciona contato
+                                ContactService.addContact(ctx, objMessage.getString("phone"), groupId, replace);
+                                messageReturn = "Adicionado numero: " + objMessage.getString("phone");
                             }
 
-                            boolean replace = false;
-                            if (objMessage.has("replace")) {
-                                replace = objMessage.getString("replace").equals("0") ? false : true;
-                            }
+                            //procura por contato
+                            contactId = ContactService.getContactIdByNumber(ctx, objMessage.getString("phone"));
 
-                            //adiciona contato aos contatos do android
-                            ContactService.addContact(ctx, objMessage.getString("phone"), groupId, replace);
-
-                            messageReturn = "Adicionado numero: " + objMessage.getString("phone");
-                            returnObject.put("message", messageReturn);
-                        }
-                        break;
-
-                    case "get_contact":
-                        contactId = ContactService.getContactIdByNumber(ctx, objMessage.getString("phone"));
-
-                        if (contactId == null) {
-                            returnObject.put("message", "contato não encontrado");
-                        } else {
                             String contactName = ContactService.getContactDisplayNameByNumber(ctx, objMessage.getString("phone"));
                             String hasWhats = ContactService.hasWhatsapp(ctx, contactId);
+
                             JSONArray phoneNumbers = ContactService.getPhoneNumbers(ctx, contactId);
                             returnObject.put("message", "contato encontrado");
                             returnObject.put("id", contactId);
@@ -71,60 +127,12 @@ public class Api {
                             returnObject.put("phoneNumber", phoneNumbers);
                             returnObject.put("hasWhats", hasWhats == null ? "0" : "1");
                             returnObject.put("group", ContactService.getGroupIdFor(ctx, Long.parseLong(contactId)));
-                        }
-                        break;
 
-                    case "remove_contact":
-
-                        contactId = ContactService.getContactIdByNumber(ctx, objMessage.getString("phone"));
-                        if (contactId == null) {
-                            returnObject.put("message", "contato não encontrado");
-                        } else {
-                            ContactService.deleteContactById(ctx, contactId);
-                            returnObject.put("message", "contato " + objMessage.getString("phone") + " removido");
-                        }
-                        break;
-
-                    case "check_contact":
-
-                        //pesquisa contato
-                        contactId = ContactService.getContactIdByNumber(ctx, objMessage.getString("phone"));
-
-                        if (contactId == null) {
-                            String groupId = "6";
-                            if (objMessage.has("groupid")) {
-                                groupId = objMessage.getString("groupid");
-                            }
-
-                            boolean replace = false;
-                            if (objMessage.has("replace")) {
-                                replace = objMessage.getString("replace").equals("0") ? false : true;
-                            }
-
-                            //adiciona contato
-                            ContactService.addContact(ctx, objMessage.getString("phone"), groupId, replace);
-                            messageReturn = "Adicionado numero: " + objMessage.getString("phone");
-                        }
-
-                        //procura por contato
-                        contactId = ContactService.getContactIdByNumber(ctx, objMessage.getString("phone"));
-
-                        String contactName = ContactService.getContactDisplayNameByNumber(ctx, objMessage.getString("phone"));
-                        String hasWhats = ContactService.hasWhatsapp(ctx, contactId);
-
-                        JSONArray phoneNumbers = ContactService.getPhoneNumbers(ctx, contactId);
-                        returnObject.put("message", "contato encontrado");
-                        returnObject.put("id", contactId);
-                        returnObject.put("contactId", contactId);
-                        returnObject.put("contactName", contactName);
-                        returnObject.put("phoneNumber", phoneNumbers);
-                        returnObject.put("hasWhats", hasWhats == null ? "0" : "1");
-                        returnObject.put("group", ContactService.getGroupIdFor(ctx, Long.parseLong(contactId)));
-
-                        break;
-                    default:
-                        returnObject.put("message", messageReturn);
-                        break;
+                            break;
+                        default:
+                            returnObject.put("message", messageReturn);
+                            break;
+                    }
                 }
             }
         }

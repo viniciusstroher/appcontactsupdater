@@ -79,7 +79,9 @@ public class UpdaterService extends Service {
             } catch (IOException e) {
                 entry = null;
                 e.printStackTrace();
+
                 //se der problema no entry mata o client
+                sendMessageList("Fechando socket ["+client.getInetAddress().getHostAddress()+"] ");
                 closeSocket(client);
             }
 
@@ -90,7 +92,9 @@ public class UpdaterService extends Service {
                     entryData = entry.nextLine();
                 }catch (Exception e){
                     entryData = "";
+
                     //se der problema mata o socket
+                    sendMessageList("Fechando socket ["+client.getInetAddress().getHostAddress()+"] ");
                     closeSocket(client);
                 }
 
@@ -101,6 +105,11 @@ public class UpdaterService extends Service {
                         message = new JSONObject(entryData);
                     } catch (JSONException e) {
                         message = null;
+
+                        JSONObject returnJsonBreaked = new JSONObject();
+                        returnJsonBreaked.put("message","Json enviado invalido.");
+                        sendMessageSocket(client, returnJsonBreaked.toString());
+
                         closeSocket(client);
                     }
 
@@ -114,6 +123,7 @@ public class UpdaterService extends Service {
                             sendMessageList("Exception envio mensagem: "+e.getMessage());
                         }
 
+                        sendMessageList("Fechando socket ["+client.getInetAddress().getHostAddress()+"] ");
                         closeSocket(client);
                     }
                 }
@@ -125,10 +135,8 @@ public class UpdaterService extends Service {
     public static boolean closeSocket(Socket client){
         try {
             client.close();
-            sendMessageList("Fechando socket ["+client.getInetAddress().getHostAddress()+"] ");
             return true;
         } catch (IOException e) {
-            sendMessageList("Não foi possivel fechar socket ["+client.getInetAddress().getHostAddress()+"] ");
             return false;
         }
     }
