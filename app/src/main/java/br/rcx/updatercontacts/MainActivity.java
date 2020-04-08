@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static String hostValue="";
     public static String authValue="";
+    public static boolean startstop = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +113,46 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        startstop = getPreferenceBoolean("startstop");
+        Button startStopButton = findViewById(R.id.startstop);
+        if(startstop){
+            startStopButton.setText("Parar!");
+        }else{
+            startStopButton.setText("Iniciar!");
+        }
+        startStopButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v){
+
+                startstop = !startstop;
+                setPreference("startstop",startstop);
+                if(startstop) {
+                    showSaveMessage("Iniciando rest!");
+                    addMessageToList("Iniciando rest!");
+                }else{
+                    showSaveMessage("Parando rest!");
+                    addMessageToList("Parando rest!");
+                }
+
+                Button startStopButton = findViewById(R.id.startstop);
+                if(startstop){
+                    startStopButton.setText("Parar!");
+                }else{
+                    startStopButton.setText("Iniciar!");
+                }
+            }
+        });
+
+        Button clearlogButton = findViewById(R.id.clearlog);
+        clearlogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v){
+                arrayListMessages.clear();
+                ((ArrayAdapter<String>) listView.getAdapter()).notifyDataSetChanged();
+            }
+        });
     }
 
     public void setPreference(String key,String value){
@@ -121,9 +162,21 @@ public class MainActivity extends AppCompatActivity {
         editor.commit();
     }
 
+    public void setPreference(String key,Boolean value){
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(key, value);
+        editor.commit();
+    }
+
     public String getPreference(String key){
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         return sharedPref.getString(key,null);
+    }
+
+    public boolean getPreferenceBoolean(String key){
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        return sharedPref.getBoolean(key,false);
     }
 
     public void showSaveMessage(String message) {

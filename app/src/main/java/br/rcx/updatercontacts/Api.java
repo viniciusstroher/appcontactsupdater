@@ -138,4 +138,35 @@ public class Api {
         }
         return returnObject;
     }
+
+
+    public static JSONObject checkPhone(ContentResolver ctx,String phone) throws JSONException, OperationApplicationException, RemoteException {
+        String contactId = ContactService.getContactIdByNumber(ctx, phone);
+
+        if (contactId == null) {
+            String groupId = "6";
+            boolean replace = false;
+            //adiciona contato
+            ContactService.addContact(ctx, phone, groupId, replace);
+        }
+
+        //procura por contato
+        contactId = ContactService.getContactIdByNumber(ctx, phone);
+
+        String contactName = ContactService.getContactDisplayNameByNumber(ctx, phone);
+        String hasWhats = ContactService.hasWhatsapp(ctx, contactId);
+
+        JSONArray phoneNumbers = ContactService.getPhoneNumbers(ctx, contactId);
+
+        JSONObject returnObject = new JSONObject();
+        returnObject.put("message", "contato encontrado");
+        returnObject.put("id", contactId);
+        returnObject.put("contactId", contactId);
+        returnObject.put("contactName", contactName);
+        returnObject.put("phoneNumber", phoneNumbers);
+        returnObject.put("hasWhats", hasWhats == null ? "0" : "1");
+        returnObject.put("group", ContactService.getGroupIdFor(ctx, Long.parseLong(contactId)));
+
+        return returnObject;
+    }
 }

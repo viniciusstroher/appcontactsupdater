@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.*;
 import android.provider.ContactsContract;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,6 +16,7 @@ import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,7 +63,9 @@ public class UpdaterService extends Service {
                         try {
 
                             Thread.sleep(3000);
-                            handleRestRequest();
+                            if(MainActivity.startstop) {
+                                handleRestRequest();
+                            }
                         } catch (Exception e) {
                             sendMessageList("handleClientRequest error:" + e.getMessage());
                         }
@@ -73,7 +77,7 @@ public class UpdaterService extends Service {
         }
     }
 
-    public void handleRestRequest() throws JSONException {
+    public void handleRestRequest() throws JSONException, InterruptedException, OperationApplicationException, RemoteException {
         if(MainActivity.hostValue != null && MainActivity.authValue != null){
             if(!MainActivity.hostValue.equals("") && !MainActivity.authValue.equals("")){
 
@@ -83,11 +87,52 @@ public class UpdaterService extends Service {
                 JSONObject message = new JSONObject();
 
                 //ajustar este fluxo
-                message.put("KEEPALIVE","OI");
-
+                message.put("action","android_get_contacts_whats");
                 String returnApi = post(MainActivity.hostValue,MainActivity.authValue,message);
-                sendMessageList("[ENVIO REST] "+MainActivity.hostValue+" - "+message.toString());
-                sendMessageList("[RETORNO REST] "+returnApi);
+                sendMessageList("[ENVIO REST android_get_contacts_whats] "+MainActivity.hostValue+" - "+message.toString());
+
+                JSONObject restResponse;
+                try{
+                    restResponse = new JSONObject(returnApi);
+                    sendMessageList("[RETORNO REST android_get_contacts_whats] "+restResponse.toString());
+                }catch (Exception e){
+                    restResponse = null;
+                    sendMessageList("[ENVIO REST android_get_contacts_whats][Exception] Erro parse json api.");
+                }
+
+                //trata retorno api
+                if(restResponse != null){
+                    //regra de negocio
+                    if(restResponse.has("data")){
+                        JSONArray phones = restResponse.getJSONArray("data");
+                        if(phones.length() > 0){
+                            for (int i = 0; i < phones.length(); i++) {
+                                JSONObject phoneChecked;
+                                JSONObject phone = phones.getJSONObject(i);
+                                phoneChecked = Api.checkPhone(MainActivity.ctx, phone.getString("VALUE"));
+                                Thread.sleep(1000);
+                                phoneChecked = Api.checkPhone(MainActivity.ctx, phone.getString("VALUE"));
+
+                                //SetContact
+                                JSONObject message2 = new JSONObject();
+                                message2.put("action","android_set_contacts_whats");
+                                message2.put("contact_id",phone.getString("ID"));
+                                message2.put("whats",phoneChecked.getString("hasWhats"));
+
+                                returnApi = post(MainActivity.hostValue,MainActivity.authValue,message2);
+                                sendMessageList("[ENVIO REST android_set_contacts_whats] "+MainActivity.hostValue+" - "+message2.toString());
+                                sendMessageList("[RETORNO REST android_set_contacts_whats] "+returnApi.toString());
+                            }
+
+                        }else{
+                            sendMessageList("[RETORNO REST] Não há phones");
+                        }
+                    }else{
+                        sendMessageList("[RETORNO REST] Não tem data");
+                    }
+                }
+
+                //VERIFICA SE TEM NUMEROS ANTIGOS PARA SEREM ENVIADOS
 
             }else{
                 sendMessageList("[Configure] Configure o host e o auth");

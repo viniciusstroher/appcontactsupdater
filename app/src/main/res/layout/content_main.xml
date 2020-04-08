@@ -49,6 +49,21 @@
                 android:textSize="20dp"
                 android:text="Salvar" />
 
+        <Button
+                android:id="@+id/startstop"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+
+                android:textSize="20dp"
+                android:text="Parar" />
+        <Button
+                android:id="@+id/clearlog"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+
+                android:textSize="20dp"
+                android:text="Limpar log" />
+
         <ListView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
