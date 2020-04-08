@@ -4,6 +4,7 @@ import android.Manifest;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.*;
 import android.content.pm.PackageManager;
@@ -13,10 +14,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -47,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
     public ListView listView = null;
     public static ContentResolver ctx;
 
+    public static String hostValue="";
+    public static String authValue="";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,7 +73,63 @@ public class MainActivity extends AppCompatActivity {
 
        ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS }, 12345);
         ctx = getContentResolver();
+
+        TextView host = findViewById(R.id.serverUrlInput);
+        TextView auth = findViewById(R.id.serverAuthInput);
+
+        hostValue = getPreference("host");
+        authValue = getPreference("auth");
+
+        if(hostValue != null) {
+            host.setText(hostValue);
+        }
+
+        if(authValue != null) {
+            auth.setText(authValue);
+        }
+
+        Button saveButton = findViewById(R.id.save);
+        saveButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v){
+                TextView host = findViewById(R.id.serverUrlInput);
+                TextView auth = findViewById(R.id.serverAuthInput);
+                if(host.getText().toString().equals("")){
+                    showSaveMessage("Campo host não pode ser vazio");
+                }else if(auth.getText().toString().equals("")){
+                    showSaveMessage("Campo auth não pode ser vazio");
+                }else{
+                    hostValue = host.getText().toString();
+                    authValue = auth.getText().toString();
+
+                    setPreference("host",hostValue);
+                    setPreference("auth",authValue);
+
+                    showSaveMessage("Configurações salvas!");
+                    addMessageToList("Configurações salvas!");
+                }
+
+            }
+        });
     }
+
+    public void setPreference(String key,String value){
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(key, value);
+        editor.commit();
+    }
+
+    public String getPreference(String key){
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        return sharedPref.getString(key,null);
+    }
+
+    public void showSaveMessage(String message) {
+        Toast.makeText(MainActivity.this, message , Toast.LENGTH_SHORT).show();
+    }
+
 
     public void addMessageToList(String message){
         String currentDateTimeString = java.text.DateFormat.getDateTimeInstance().format(new Date());
@@ -92,13 +149,13 @@ public class MainActivity extends AppCompatActivity {
         recreate();
     }
 
+
     //RECEBE DO UPDATER SERVICE MSG - COMO NAO PODE ALTERAR A THREAD DO SERVIÇO
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent){
             //recebe message que vier pelo brodcast do socket
             String message = intent.getStringExtra("message");
-            Logger.getLogger(UpdaterService.class.getName()).log(Level.INFO,"[MainActivity][BroadcastReceiver][onReceive] Mensagem recebida: "+message);
             addMessageToList(message);
         }
     };

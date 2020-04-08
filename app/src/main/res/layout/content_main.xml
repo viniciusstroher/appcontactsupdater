@@ -9,9 +9,51 @@
     tools:showIn="@layout/activity_main"
     tools:context=".MainActivity">
 
-    <ListView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:layout_editor_absoluteX="65dp" android:id="@+id/listLog"/>
+    <LinearLayout android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical" tools:ignore="MissingConstraints">
+        <TextView
+                android:id="@+id/serverUrlLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="Url Servidor"
+                android:textSize="20dp"
+                tools:ignore="MissingConstraints"/>
+
+        <EditText
+                android:id="@+id/serverUrlInput"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:textSize="20dp"
+                tools:ignore="MissingConstraints"/>
+
+        <TextView
+                android:id="@+id/serverAuthLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="Auth"
+                android:textSize="20dp"
+                tools:ignore="MissingConstraints"/>
+
+        <EditText
+                android:id="@+id/serverAuthInput"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                tools:ignore="MissingConstraints"/>
+
+        <Button
+                android:id="@+id/save"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+
+                android:textSize="20dp"
+                android:text="Salvar" />
+
+        <ListView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:layout_editor_absoluteX="65dp" android:id="@+id/listLog" tools:ignore="MissingConstraints"/>
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
