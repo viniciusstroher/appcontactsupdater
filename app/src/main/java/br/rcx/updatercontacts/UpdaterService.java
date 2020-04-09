@@ -147,11 +147,11 @@ public class UpdaterService extends Service {
 
     public String post(String uri,String auth,final JSONObject data) {
         try {
-            final URL url = new URL(uri);
+            final URL url = new URL("http://"+uri+"/rcx/ContactCenter/messages_api.php");
             final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
             if(auth != null) {
-                connection.setRequestProperty("Authorization", auth);
+                connection.setRequestProperty("Authorization", "Basic "+auth);
             }
 //
 //            connection.setRequestProperty("Accept", "application/json");
