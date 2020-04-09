@@ -62,10 +62,12 @@ public class UpdaterService extends Service {
                     sendMessageList("Iniciando servico de rest");
                     while (true) {
                         try {
-
-                            Thread.sleep(3000);
-                            if(MainActivity.startstop) {
-                                handleRestRequest();
+                            int sleepTime = Integer.parseInt(MainActivity.msValue);
+                            if(sleepTime > 0) {
+                                Thread.sleep(sleepTime);
+                                if (MainActivity.startstop) {
+                                    handleRestRequest();
+                                }
                             }
                         } catch (Exception e) {
                             sendMessageList("handleClientRequest error:" + e.getMessage());

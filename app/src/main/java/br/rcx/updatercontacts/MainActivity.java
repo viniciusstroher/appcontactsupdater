@@ -47,7 +47,9 @@ public class MainActivity extends AppCompatActivity {
 
     public static String hostValue="";
     public static String authValue="";
+    public static String msValue = "60000";
     public static boolean startstop = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,9 +79,11 @@ public class MainActivity extends AppCompatActivity {
 
         TextView host = findViewById(R.id.serverUrlInput);
         TextView auth = findViewById(R.id.serverAuthInput);
+        TextView ms = findViewById(R.id.serverMsInput);
 
         hostValue = getPreference("host");
         authValue = getPreference("auth");
+        msValue = getPreference("ms");
 
         if(hostValue != null) {
             host.setText(hostValue);
@@ -89,6 +93,13 @@ public class MainActivity extends AppCompatActivity {
             auth.setText(authValue);
         }
 
+        if(msValue != null) {
+            ms.setText(msValue);
+        }else{
+            msValue = "60000";
+            ms.setText(msValue);
+        }
+
         Button saveButton = findViewById(R.id.save);
         saveButton.setOnClickListener(new View.OnClickListener() {
 
@@ -96,6 +107,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v){
                 TextView host = findViewById(R.id.serverUrlInput);
                 TextView auth = findViewById(R.id.serverAuthInput);
+                TextView ms = findViewById(R.id.serverMsInput);
+
                 if(host.getText().toString().equals("")){
                     showSaveMessage("Campo host não pode ser vazio");
                 }else if(auth.getText().toString().equals("")){
@@ -103,9 +116,11 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     hostValue = host.getText().toString();
                     authValue = auth.getText().toString();
+                    msValue = ms.getText().toString();
 
                     setPreference("host",hostValue);
                     setPreference("auth",authValue);
+                    setPreference("ms",msValue);
 
                     showSaveMessage("Configurações salvas!");
                     addMessageToList("Configurações salvas!");
@@ -154,7 +169,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        clearlogButton.requestFocus();
 
     }
 
@@ -176,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         return sharedPref.getString(key,null);
     }
+
 
     public boolean getPreferenceBoolean(String key){
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
