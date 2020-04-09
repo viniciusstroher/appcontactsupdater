@@ -6,6 +6,7 @@ import android.content.*;
 import android.net.Uri;
 import android.os.*;
 import android.provider.ContactsContract;
+import android.view.WindowManager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -116,7 +117,7 @@ public class UpdaterService extends Service {
                                 //SetContact
                                 JSONObject message2 = new JSONObject();
                                 message2.put("action","android_set_contacts_whats");
-                                message2.put("contact_id",phone.getString("ID"));
+                                message2.put("contact_id",Integer.parseInt(phone.getString("ID")));
                                 message2.put("whats",phoneChecked.getString("hasWhats"));
 
                                 returnApi = post(MainActivity.hostValue,MainActivity.authValue,message2);
@@ -150,9 +151,10 @@ public class UpdaterService extends Service {
             if(auth != null) {
                 connection.setRequestProperty("Authorization", auth);
             }
-            connection.setRequestProperty("Accept", "application/json");
-            connection.setRequestProperty("Content-type", "application/json");
-
+//
+//            connection.setRequestProperty("Accept", "application/json");
+//            connection.setRequestProperty("Content-type", "application/json");
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
             connection.setRequestMethod("POST");
             connection.setDoInput(true);
             connection.setDoOutput(true);
@@ -160,7 +162,18 @@ public class UpdaterService extends Service {
             final OutputStream outputStream = connection.getOutputStream();
             final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
 
-            writer.write(data.toString());
+            StringBuilder sb = new StringBuilder();
+            Iterator<String> keys = data.keys();
+
+            while(keys.hasNext()) {
+                String key = keys.next();
+
+                sb.append("&"+key+"="+data.get(key));
+                    // do something with jsonObject here
+
+            }
+            //writer.write(data.toString());
+            writer.write(sb.toString());
             writer.flush();
             writer.close();
             outputStream.close();
@@ -175,6 +188,7 @@ public class UpdaterService extends Service {
 
         return null;
     }
+
 
 
     //cuida das msgs enviadas do cliente pelo socket

@@ -153,6 +153,9 @@ public class MainActivity extends AppCompatActivity {
                 ((ArrayAdapter<String>) listView.getAdapter()).notifyDataSetChanged();
             }
         });
+
+        clearlogButton.requestFocus();
+
     }
 
     public void setPreference(String key,String value){
