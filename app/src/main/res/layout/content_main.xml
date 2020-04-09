@@ -12,87 +12,105 @@
     <LinearLayout android:layout_width="match_parent"
                   android:layout_height="wrap_content"
                   android:orientation="vertical" tools:ignore="MissingConstraints">
-        <TextView
-                android:id="@+id/serverIpLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:text="IP Servidor"
-                android:textSize="20dp"
-                tools:ignore="MissingConstraints"/>
 
-        <EditText
-                android:id="@+id/serverIpInput"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:textSize="20dp"
-                tools:ignore="MissingConstraints"/>
+        <LinearLayout android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal" tools:ignore="MissingConstraints">
+            <TextView
+                    android:id="@+id/serverIpLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:text="IP Servidor"
+                    android:textSize="20dp"
+                    tools:ignore="MissingConstraints"/>
 
-        <TextView
-                android:id="@+id/serverUserLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:text="Usuario"
-                android:textSize="20dp"
-                tools:ignore="MissingConstraints"/>
+            <EditText
+                    android:id="@+id/serverIpInput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:textSize="20dp"
+                    tools:ignore="MissingConstraints"/>
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="horizontal" tools:ignore="MissingConstraints">
+            <TextView
+                    android:id="@+id/serverUserLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:text="Usuario"
+                    android:textSize="20dp"
+                    tools:ignore="MissingConstraints"/>
 
-        <EditText
-                android:id="@+id/serverUserInput"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                tools:ignore="MissingConstraints"/>
+            <EditText
+                    android:id="@+id/serverUserInput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    tools:ignore="MissingConstraints"/>
+        </LinearLayout>
 
-        <TextView
-                android:id="@+id/serverPwdLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:text="Senha"
-                android:textSize="20dp"
-                tools:ignore="MissingConstraints"/>
+        <LinearLayout android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal" tools:ignore="MissingConstraints">
+            <TextView
+                    android:id="@+id/serverPwdLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:text="Senha"
+                    android:textSize="20dp"
+                    tools:ignore="MissingConstraints"/>
 
-        <EditText
-                android:id="@+id/serverPwdInput"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                tools:ignore="MissingConstraints"/>
+            <EditText
+                    android:id="@+id/serverPwdInput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    tools:ignore="MissingConstraints"/>
+            </LinearLayout>
 
-        <TextView
-                android:id="@+id/serverMsLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:text="MS"
-                android:textSize="20dp"
-                tools:ignore="MissingConstraints"/>
+            <LinearLayout android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal" tools:ignore="MissingConstraints">
+            <TextView
+                    android:id="@+id/serverMsLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:text="MS"
+                    android:textSize="20dp"
+                    tools:ignore="MissingConstraints"/>
 
-        <EditText
+            <EditText
                 android:id="@+id/serverMsInput"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 tools:ignore="MissingConstraints"/>
+            </LinearLayout>
 
+            <LinearLayout android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal" tools:ignore="MissingConstraints">
+            <Button
+                    android:id="@+id/save"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
 
-        <Button
-                android:id="@+id/save"
-                android:layout_height="match_parent"
-                android:layout_width="match_parent"
+                    android:textSize="20dp"
+                    android:text="Salvar" />
 
-                android:textSize="20dp"
-                android:text="Salvar" />
+            <Button
+                    android:id="@+id/startstop"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
 
-        <Button
-                android:id="@+id/startstop"
-                android:layout_height="match_parent"
-                android:layout_width="match_parent"
+                    android:textSize="20dp"
+                    android:text="Parar" />
+            <Button
+                    android:id="@+id/clearlog"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
 
-                android:textSize="20dp"
-                android:text="Parar" />
-        <Button
-                android:id="@+id/clearlog"
-                android:layout_height="match_parent"
-                android:layout_width="match_parent"
-
-                android:textSize="20dp"
-                android:text="Limpar log" />
-
+                    android:textSize="20dp"
+                    android:text="Limpar log" />
+        </LinearLayout>
         <ListView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
