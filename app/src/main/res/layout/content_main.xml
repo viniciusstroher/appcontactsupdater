@@ -13,35 +13,47 @@
                   android:layout_height="wrap_content"
                   android:orientation="vertical" tools:ignore="MissingConstraints">
         <TextView
-                android:id="@+id/serverUrlLabel"
+                android:id="@+id/serverIpLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                android:text="Url Servidor"
+                android:text="IP Servidor"
                 android:textSize="20dp"
                 tools:ignore="MissingConstraints"/>
 
         <EditText
-                android:id="@+id/serverUrlInput"
+                android:id="@+id/serverIpInput"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:textSize="20dp"
                 tools:ignore="MissingConstraints"/>
 
         <TextView
-                android:id="@+id/serverAuthLabel"
+                android:id="@+id/serverUserLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                android:text="Auth"
+                android:text="Usuario"
                 android:textSize="20dp"
                 tools:ignore="MissingConstraints"/>
 
         <EditText
-                android:id="@+id/serverAuthInput"
+                android:id="@+id/serverUserInput"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 tools:ignore="MissingConstraints"/>
 
+        <TextView
+                android:id="@+id/serverPwdLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="Senha"
+                android:textSize="20dp"
+                tools:ignore="MissingConstraints"/>
 
+        <EditText
+                android:id="@+id/serverPwdInput"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                tools:ignore="MissingConstraints"/>
 
         <TextView
                 android:id="@+id/serverMsLabel"

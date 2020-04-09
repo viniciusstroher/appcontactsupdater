@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
+import android.util.Base64;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -29,6 +30,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
@@ -46,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
     public static ContentResolver ctx;
 
     public static String hostValue="";
+    public static String userValue="";
+    public static String pwdValue="";
     public static String authValue="";
     public static String msValue = "60000";
     public static boolean startstop = false;
@@ -77,20 +81,38 @@ public class MainActivity extends AppCompatActivity {
        ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS }, 12345);
         ctx = getContentResolver();
 
-        TextView host = findViewById(R.id.serverUrlInput);
-        TextView auth = findViewById(R.id.serverAuthInput);
+        TextView host = findViewById(R.id.serverIpInput);
+        TextView user = findViewById(R.id.serverUserInput);
+        TextView pwd = findViewById(R.id.serverPwdInput);
         TextView ms = findViewById(R.id.serverMsInput);
 
         hostValue = getPreference("host");
-        authValue = getPreference("auth");
+        userValue = getPreference("user");
+        pwdValue = getPreference("pwd");
+
+        String auth = userValue+":"+pwdValue;
+        byte[] data = new byte[0];
+        try {
+            data = auth.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        String base64 = Base64.encodeToString(data, Base64.DEFAULT);
+        authValue = base64;
+
         msValue = getPreference("ms");
 
         if(hostValue != null) {
             host.setText(hostValue);
         }
 
-        if(authValue != null) {
-            auth.setText(authValue);
+        if(user != null) {
+            user.setText(userValue);
+        }
+
+        if(pwd != null) {
+            pwd.setText(pwdValue);
         }
 
         if(msValue != null) {
@@ -105,21 +127,35 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v){
-                TextView host = findViewById(R.id.serverUrlInput);
-                TextView auth = findViewById(R.id.serverAuthInput);
+                TextView host = findViewById(R.id.serverIpInput);
+                TextView user = findViewById(R.id.serverUserInput);
+                TextView pwd = findViewById(R.id.serverPwdInput);
                 TextView ms = findViewById(R.id.serverMsInput);
 
                 if(host.getText().toString().equals("")){
                     showSaveMessage("Campo host não pode ser vazio");
-                }else if(auth.getText().toString().equals("")){
-                    showSaveMessage("Campo auth não pode ser vazio");
+                }else if(user.getText().toString().equals("") || pwd.getText().toString().equals("")){
+                    showSaveMessage("Campo user e pwd não podem estar vazio");
                 }else{
                     hostValue = host.getText().toString();
-                    authValue = auth.getText().toString();
+                    userValue = user.getText().toString();
+                    pwdValue = pwd.getText().toString();
+
+                    String auth = userValue+":"+pwdValue;
+                    byte[] data = new byte[0];
+                    try {
+                        data = auth.getBytes("UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+
+                    String base64 = Base64.encodeToString(data, Base64.DEFAULT);
+                    authValue = base64;
                     msValue = ms.getText().toString();
 
                     setPreference("host",hostValue);
-                    setPreference("auth",authValue);
+                    setPreference("user",userValue);
+                    setPreference("pwd",pwdValue);
                     setPreference("ms",msValue);
 
                     showSaveMessage("Configurações salvas!");
