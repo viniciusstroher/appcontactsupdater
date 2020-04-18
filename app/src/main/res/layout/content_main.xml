@@ -64,6 +64,8 @@
                     android:id="@+id/serverPwdInput"
                     android:layout_width="wrap_content"
                     android:layout_height="50dp"
+                    android:inputType="textPassword"
+
                     tools:ignore="MissingConstraints"/>
             </LinearLayout>
 
