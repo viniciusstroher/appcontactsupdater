@@ -35,12 +35,12 @@ public class UpdaterService extends Service {
 
                 while (true) {
                     try {
-                        Date now = new Date();
+
                         //executa se tiver dado o tempo configurado - app
                         if(canExecute(lastExecuteRest,intervalMs)) {
                             if (MainActivity.startStopValue) {
                                 handleRestRequest();
-                                lastExecuteRest = now;
+                                lastExecuteRest = new Date();
                                 sendMessageList("[UpdaterService] Iniciando Servico de Checagem de numeros.");
                             }
                         }
@@ -49,7 +49,7 @@ public class UpdaterService extends Service {
                         if(canExecute(lastExecuteZabbix,intervalMsZabbix)) {
                             if (MainActivity.zabbixServiceValue) {
                                 handleZabbixRequest();
-                                lastExecuteZabbix = now;
+                                lastExecuteZabbix = new Date();
                                 sendMessageList("[UpdaterService] Iniciando Servico de Zabbix.");
                             }
                         }
