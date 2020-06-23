@@ -1,16 +1,17 @@
-package br.rcx.updatercontacts;
+package br.rcx.updatercontacts.services;
 
 import android.content.ContentResolver;
 import android.content.OperationApplicationException;
 import android.os.RemoteException;
+import android.util.Base64;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.UnsupportedEncodingException;
 
-public class Api {
+public class ApiService {
+
     //trata mensagens que chegam da UpdaterService
     public static JSONObject handleCommand(ContentResolver ctx,JSONObject objMessage) throws JSONException, OperationApplicationException, RemoteException {
         JSONObject returnObject = new JSONObject();
@@ -142,7 +143,6 @@ public class Api {
 
     public static JSONObject checkPhone(ContentResolver ctx,String phone) throws JSONException, OperationApplicationException, RemoteException {
         String contactId = ContactService.getContactIdByNumber(ctx, phone);
-
         if (contactId == null) {
             String groupId = "6";
             boolean replace = false;
@@ -168,5 +168,18 @@ public class Api {
         returnObject.put("group", ContactService.getGroupIdFor(ctx, Long.parseLong(contactId)));
 
         return returnObject;
+    }
+
+    public static String generateAuth(String userValue,String pwdValue){
+        String auth = userValue+":"+pwdValue;
+        byte[] data = new byte[0];
+        try {
+            data = auth.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        String base64 = Base64.encodeToString(data, Base64.DEFAULT);
+        return base64;
     }
 }

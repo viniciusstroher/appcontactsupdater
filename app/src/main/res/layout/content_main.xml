@@ -7,11 +7,13 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main"
-    tools:context=".MainActivity">
+    tools:context=".main.MainActivity">
 
-    <LinearLayout android:layout_width="match_parent"
+    <LinearLayout android:id="@+id/configPanel"
+                  android:layout_width="match_parent"
                   android:layout_height="wrap_content"
                   android:orientation="vertical" tools:ignore="MissingConstraints">
+
 
         <LinearLayout android:layout_width="match_parent"
                   android:layout_height="wrap_content"
@@ -86,35 +88,129 @@
                 android:layout_height="50dp"
                 tools:ignore="MissingConstraints"/>
             </LinearLayout>
-        
-            <Button
-                    android:id="@+id/save"
-                    android:layout_height="match_parent"
-                    android:layout_width="match_parent"
+            <LinearLayout android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:orientation="horizontal" tools:ignore="MissingConstraints">
+                <TextView
+                        android:id="@+id/httppLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:text="Protocolo"
+                        android:textSize="20dp"
+                        tools:ignore="MissingConstraints"/>
 
+                <Button
+                        android:id="@+id/http"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:textSize="18dp"
+                        android:text="Http" />
+            </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="horizontal" tools:ignore="MissingConstraints">
+            <TextView
+                    android:id="@+id/zabbixServicelabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:text="Zabbix"
                     android:textSize="20dp"
-                    android:text="Salvar" />
+                    tools:ignore="MissingConstraints"/>
 
             <Button
-                    android:id="@+id/startstop"
-                    android:layout_height="match_parent"
-                    android:layout_width="match_parent"
+                    android:id="@+id/zabbixServiceInput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:textSize="18dp"
+                    android:text="Desligado" />
+        </LinearLayout>
 
+        <LinearLayout android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="horizontal" tools:ignore="MissingConstraints">
+            <TextView
+                    android:id="@+id/zabbixServiceUrllabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:text="Zabbix Url"
                     android:textSize="20dp"
-                    android:text="Parar" />
-            <Button
-                    android:id="@+id/clearlog"
-                    android:layout_height="match_parent"
-                    android:layout_width="match_parent"
+                    tools:ignore="MissingConstraints"/>
 
+            <EditText
+                    android:id="@+id/zabbixServiceUrlInput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+
+                    tools:ignore="MissingConstraints"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="horizontal" tools:ignore="MissingConstraints">
+            <TextView
+                    android:id="@+id/zabbixServiceMsLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:text="MS"
                     android:textSize="20dp"
-                    android:text="Limpar log" />
+                    tools:ignore="MissingConstraints"/>
 
+            <EditText
+                    android:id="@+id/zabbixServiceMsInput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    tools:ignore="MissingConstraints"/>
+        </LinearLayout>
+
+
+
+
+
+
+
+
+            <LinearLayout android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:gravity="center"
+                  tools:ignore="MissingConstraints">
+
+                <Button
+                        android:id="@+id/save"
+                        android:layout_height="100px"
+                        android:layout_width="120dp"
+
+                        android:textSize="18dp"
+                        android:text="Salvar" />
+
+                <Button
+                        android:id="@+id/startstop"
+                        android:layout_height="100px"
+                        android:layout_width="120dp"
+
+                        android:textSize="18dp"
+                        android:text="Parar" />
+                <Button
+                        android:id="@+id/clearlog"
+                        android:layout_height="100px"
+                        android:layout_width="120dp"
+
+                        android:textSize="18dp"
+                        android:text="Limpar" />
+
+
+            </LinearLayout>
+
+    </LinearLayout>
+    <LinearLayout android:id="@+id/logPanel"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical" tools:ignore="MissingConstraints">
         <ListView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 tools:layout_editor_absoluteX="65dp" android:id="@+id/listLog" tools:ignore="MissingConstraints"/>
     </LinearLayout>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

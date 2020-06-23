@@ -1,4 +1,4 @@
-package br.rcx.updatercontacts;
+package br.rcx.updatercontacts.services;
 
 import android.content.*;
 import android.database.Cursor;

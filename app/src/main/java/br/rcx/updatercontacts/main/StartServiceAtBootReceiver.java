@@ -1,4 +1,4 @@
-package br.rcx.updatercontacts;
+package br.rcx.updatercontacts.main;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

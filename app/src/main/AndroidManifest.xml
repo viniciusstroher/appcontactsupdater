@@ -19,7 +19,7 @@
             android:usesCleartextTraffic="true"
             tools:ignore="HardcodedDebugMode">
         <service
-                android:name=".UpdaterService"
+                android:name=".services.UpdaterService"
                 android:enabled="true"
                 android:exported="true">
         </service>
@@ -28,7 +28,7 @@
         <receiver
                 android:enabled="true"
                 android:exported="true"
-                android:name="br.rcx.updatercontacts.StartServiceAtBootReceiver"
+                android:name="br.rcx.updatercontacts.main.StartServiceAtBootReceiver"
                 android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
 
             <intent-filter>
@@ -40,7 +40,7 @@
         </receiver>
 
         <activity
-                android:name=".MainActivity"
+                android:name=".main.MainActivity"
                 android:label="@string/app_name"
                 android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
