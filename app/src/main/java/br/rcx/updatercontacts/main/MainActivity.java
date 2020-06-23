@@ -36,7 +36,22 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String DEFAULT_MS = "60000";
     private static final String DEFAULT_PROTOCOL_HTTP = "http";
+    private static final String DEFAULT_PROTOCOL_HTTPS = "https";
+    private static final String DEFAULT_URL_ZABBIX = "http://zabbix?senha=123&user=1";
+    private static final String DEFAULT_ON = "ON";
+    private static final String DEFAULT_OFF = "OFF";
+
     private static final int maxLogListItems = 200;
+
+    private static final String DEFAULT_PREF_KEY_HOST = "host";
+    private static final String DEFAULT_PREF_KEY_USER = "user";
+    private static final String DEFAULT_PREF_KEY_PWD = "pwd";
+    private static final String DEFAULT_PREF_KEY_HTTP = "http";
+    private static final String DEFAULT_PREF_KEY_MS = "ms";
+    private static final String DEFAULT_PREF_KEY_ZABBIX_URL = "zabbixserviceurlvalue";
+    private static final String DEFAULT_PREF_KEY_ZABBIX_MS = "zabbixservicemsvalue";
+    private static final String DEFAULT_PREF_KEY_ZABBIX = "zabbixservice";
+    private static final String DEFAULT_PREF_KEY_STARTSTOP = "startstop";
 
     //variaveis de estado
     public static String hostValue="";
@@ -45,9 +60,10 @@ public class MainActivity extends AppCompatActivity {
     public static String authValue="";
     public static String msValue = "";
     public static String httpValue = "";
-    public static String zabbixUrlValue = "http://zabbix?senha=123&user=1";
-    public static boolean startstop = false;
-    public static boolean zabbixService = false;
+    public static String zabbixServiceUrlValue = "";
+    public static String zabbixServiceMsValue = "";
+    public static boolean startStopValue = false;
+    public static boolean zabbixServiceValue = false;
 
     //elementos da activity
     public ListView listView = null;
@@ -61,6 +77,10 @@ public class MainActivity extends AppCompatActivity {
     private Button clearlogButton;
     private LinearLayout configPanel;
     private LinearLayout logPanel;
+
+    private Button zabbixServiceButton;
+    private TextView zabbixServiceUrl;
+    private TextView zabbixServiceMs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +114,11 @@ public class MainActivity extends AppCompatActivity {
         ms = findViewById(R.id.serverMsInput);
         httpButton = findViewById(R.id.http);
         saveButton = findViewById(R.id.save);
+
+        zabbixServiceButton = findViewById(R.id.zabbixServiceInput);
+        zabbixServiceUrl = findViewById(R.id.zabbixServiceUrlInput);
+        zabbixServiceMs = findViewById(R.id.zabbixServiceMsInput);
+
         startStopButton = findViewById(R.id.startstop);
         clearlogButton = findViewById(R.id.clearlog);
         configPanel = findViewById(R.id.configPanel);
@@ -107,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
 
         //bind de aoes de click
         registerFieldsAction();
-
     }
 
     public void startService(){
@@ -120,29 +144,36 @@ public class MainActivity extends AppCompatActivity {
 
     public void loadFieldsValues(){
         //carrega valores do preferences
-        hostValue = preferenceService.getPreference("host");
-        userValue = preferenceService.getPreference("user");
-        pwdValue = preferenceService.getPreference("pwd");
-        httpValue = preferenceService.getPreference("http");
-        msValue = preferenceService.getPreference("ms");
-        startstop = preferenceService.getPreferenceBoolean("startstop");
-
+        hostValue = preferenceService.getPreference(DEFAULT_PREF_KEY_HOST);
+        userValue = preferenceService.getPreference(DEFAULT_PREF_KEY_USER);
+        pwdValue = preferenceService.getPreference(DEFAULT_PREF_KEY_PWD);
+        httpValue = preferenceService.getPreference(DEFAULT_PREF_KEY_HTTP);
+        msValue = preferenceService.getPreference(DEFAULT_PREF_KEY_MS);
+        //zabbix
+        zabbixServiceUrlValue = preferenceService.getPreference(DEFAULT_PREF_KEY_ZABBIX_URL);
+        zabbixServiceMsValue = preferenceService.getPreference(DEFAULT_PREF_KEY_ZABBIX_MS);
+        zabbixServiceValue = preferenceService.getPreferenceBoolean(DEFAULT_PREF_KEY_ZABBIX);
+        startStopValue = preferenceService.getPreferenceBoolean(DEFAULT_PREF_KEY_STARTSTOP);
         //gera tocken de auth
         authValue = ApiService.generateAuth(userValue,pwdValue);
 
         //preenche campos
+        //host
         if(hostValue != null) {
             host.setText(hostValue);
         }
 
+        //usuario
         if(user != null) {
             user.setText(userValue);
         }
 
+        //senha
         if(pwd != null) {
             pwd.setText(pwdValue);
         }
 
+        //ms http
         if(msValue != null) {
             ms.setText(msValue);
         }else{
@@ -150,16 +181,40 @@ public class MainActivity extends AppCompatActivity {
             ms.setText(msValue);
         }
 
+        //protocolo http/https
         if(httpValue != null){
             httpButton.setText(httpValue);
         }else{
             httpButton.setText(MainActivity.DEFAULT_PROTOCOL_HTTP);
         }
 
-        if(startstop){
-            startStopButton.setText("Parar!");
+        //start stop button
+        if(startStopValue){
+            startStopButton.setText(DEFAULT_ON);
         }else{
-            startStopButton.setText("Iniciar!");
+            startStopButton.setText(DEFAULT_OFF);
+        }
+
+        //zabbix
+        if(zabbixServiceUrlValue != null) {
+            zabbixServiceUrl.setText(zabbixServiceUrlValue);
+        }else{
+            zabbixServiceUrlValue = MainActivity.DEFAULT_URL_ZABBIX;
+            zabbixServiceUrl.setText(msValue);
+        }
+
+        if(zabbixServiceMsValue != null) {
+            zabbixServiceMs.setText(zabbixServiceMsValue);
+        }else{
+            zabbixServiceMsValue = MainActivity.DEFAULT_MS;
+            zabbixServiceMs.setText(msValue);
+        }
+
+        //start stop button
+        if(zabbixServiceValue){
+            zabbixServiceButton.setText(DEFAULT_ON);
+        }else{
+            zabbixServiceButton.setText(DEFAULT_OFF);
         }
 
         configPanel.setVisibility(View.INVISIBLE);
@@ -171,12 +226,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v){
-                Button httpButton = (Button) v.findViewById(R.id.http);
-                if(httpButton.getText().toString().equals(MainActivity.DEFAULT_PROTOCOL_HTTP)){
-                    httpButton.setText("https");
-                }else{
-                    httpButton.setText("http");
-                }
+            Button httpButton = (Button) v.findViewById(R.id.http);
+            if(httpButton.getText().toString().equals(MainActivity.DEFAULT_PROTOCOL_HTTP)){
+                httpButton.setText(DEFAULT_PROTOCOL_HTTPS);
+            }else{
+                httpButton.setText(DEFAULT_PROTOCOL_HTTP);
+            }
             }
         });
 
@@ -185,29 +240,38 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v){
-                if(host.getText().toString().equals("")){
-                    showSaveMessage("Campo host não pode ser vazio");
-                }else if(user.getText().toString().equals("") || pwd.getText().toString().equals("")){
-                    showSaveMessage("Campo user e pwd não podem estar vazio");
-                }else{
-                    //atualiza valores
-                    hostValue = host.getText().toString();
-                    userValue = user.getText().toString();
-                    pwdValue = pwd.getText().toString();
-                    httpValue = httpButton.getText().toString();
-                    msValue = ms.getText().toString();
-                    authValue = ApiService.generateAuth(userValue,pwdValue);
+            if(host.getText().toString().equals("")){
+                showSaveMessage("Campo host não pode ser vazio");
+            }else if(user.getText().toString().equals("") || pwd.getText().toString().equals("")){
+                showSaveMessage("Campo user e pwd não podem estar vazio");
+            }else{
+                //atualiza valores
+                hostValue = host.getText().toString();
+                userValue = user.getText().toString();
+                pwdValue = pwd.getText().toString();
+                httpValue = httpButton.getText().toString();
+                msValue = ms.getText().toString();
 
-                    //salva estado nos preferences
-                    preferenceService.setPreference("host",hostValue);
-                    preferenceService.setPreference("user",userValue);
-                    preferenceService.setPreference("pwd",pwdValue);
-                    preferenceService.setPreference("ms",msValue);
-                    preferenceService.setPreference("http",httpValue);
+                zabbixServiceValue = zabbixServiceButton.getText().toString().toLowerCase().equals(DEFAULT_OFF) ? false : true;
+                zabbixServiceUrlValue = zabbixServiceUrl.getText().toString();
+                zabbixServiceMsValue = zabbixServiceMs.getText().toString();
 
-                    showSaveMessage("Configurações salvas!");
-                    addMessageToList("Configurações salvas!");
-                }
+                authValue = ApiService.generateAuth(userValue,pwdValue);
+
+                //salva estado nos preferences
+                preferenceService.setPreference(DEFAULT_PREF_KEY_HOST,hostValue);
+                preferenceService.setPreference(DEFAULT_PREF_KEY_USER,userValue);
+                preferenceService.setPreference(DEFAULT_PREF_KEY_PWD,pwdValue);
+                preferenceService.setPreference(DEFAULT_PREF_KEY_MS,msValue);
+                preferenceService.setPreference(DEFAULT_PREF_KEY_HTTP,httpValue);
+                preferenceService.setPreference(DEFAULT_PREF_KEY_ZABBIX_URL,zabbixServiceUrlValue);
+                preferenceService.setPreference(DEFAULT_PREF_KEY_ZABBIX_MS,zabbixServiceMsValue);
+                preferenceService.setPreference(DEFAULT_PREF_KEY_ZABBIX,zabbixServiceValue);
+                preferenceService.setPreference(DEFAULT_PREF_KEY_HTTP,httpValue);
+
+                showSaveMessage("Configurações salvas!");
+                addMessageToList("Configurações salvas!");
+            }
             }
         });
 
@@ -217,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 startstop = !startstop;
-                preferenceService.setPreference("startstop",startstop);
+                preferenceService.setPreference(DEFAULT_PREF_KEY_STARTSTOP,startstop);
 
                 if(startstop) {
                     showSaveMessage("Iniciando rest!");
@@ -228,9 +292,9 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if(startstop){
-                    startStopButton.setText("Parar!");
+                    startStopButton.setText(DEFAULT_ON);
                 }else{
-                    startStopButton.setText("Iniciar!");
+                    startStopButton.setText(DEFAULT_OFF);
                 }
             }
         });
