@@ -70,7 +70,7 @@ public class UpdaterService extends Service {
 
         long diffInMillies = Math.abs(new Date().getTime() - lastDate.getTime());
         long diffSeconds   = TimeUnit.MILLISECONDS.toSeconds(diffInMillies);
-        if(diffSeconds >= ms){
+        if(diffSeconds*1000 >= ms){
             return true;
         }
 
@@ -86,10 +86,13 @@ public class UpdaterService extends Service {
             sendMessageList("[Configure] Configure a url");
         }
 
-        String messageZabbixRawResponse = get(MainActivity.zabbixServiceUrlValue);
-        JSONObject messageZabbixResponse = new JSONObject(messageZabbixRawResponse);
-        sendMessageList("[RETORNO Zabbix "+MainActivity.zabbixServiceUrlValue+"] "+messageZabbixResponse.toString());
-
+        try {
+            String messageZabbixRawResponse = get(MainActivity.zabbixServiceUrlValue);
+            JSONObject messageZabbixResponse = new JSONObject(messageZabbixRawResponse);
+            sendMessageList("[RETORNO Zabbix " + MainActivity.zabbixServiceUrlValue + "] " + messageZabbixResponse.toString());
+        }catch(Exception e){
+            sendMessageList("[RETORNO Zabbix " + MainActivity.zabbixServiceUrlValue + "] " + e.getMessage());
+        }
     }
 
     public void handleRestRequest() throws JSONException, InterruptedException, OperationApplicationException, RemoteException {
