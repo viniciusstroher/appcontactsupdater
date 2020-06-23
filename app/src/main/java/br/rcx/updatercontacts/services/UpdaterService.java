@@ -11,36 +11,85 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class UpdaterService extends Service {
-    private Thread restThread = null;
+    private Thread thread = null;
+    private Date lastExecuteRest = null;
+    private Date lastExecuteZabbix = null;
+    private int intervalMs;
+    private int intervalMsZabbix;
+
     public UpdaterService() throws IOException {
+        intervalMs = Integer.parseInt(MainActivity.msValue);
+        intervalMsZabbix = Integer.parseInt(MainActivity.zabbixServiceMsValue);
         //inicia servidor
-        restThread = new Thread(new Runnable() {
+        thread = new Thread(new Runnable() {
             @Override
             public void run() {
-            sendMessageList("[UpdaterService] Iniciando Servico de Checagem de numeros.");
-            while (true) {
-                try {
-                    int sleepTime = Integer.parseInt(MainActivity.msValue);
-                    if(sleepTime > 0) {
-                        if (MainActivity.startStopValue) {
-                            handleRestRequest();
+
+                while (true) {
+                    try {
+                        Date now = new Date();
+                        //executa se tiver dado o tempo configurado - app
+                        if(canExecute(lastExecuteRest,intervalMs)) {
+                            if (MainActivity.startStopValue) {
+                                handleRestRequest();
+                                lastExecuteRest = now;
+                                sendMessageList("[UpdaterService] Iniciando Servico de Checagem de numeros.");
+                            }
                         }
-                        Thread.sleep(sleepTime);
+
+                        //executa se tiver dado o tempo configurado - zabbix
+                        if(canExecute(lastExecuteZabbix,intervalMsZabbix)) {
+                            if (MainActivity.zabbixServiceValue) {
+                                handleZabbixRequest();
+                                lastExecuteZabbix = now;
+                                sendMessageList("[UpdaterService] Iniciando Servico de Zabbix.");
+                            }
+                        }
+                    } catch (Exception e) {
+                        sendMessageList("[UpdaterService] handleClientRequest error:" + e.getMessage());
                     }
-                } catch (Exception e) {
-                    sendMessageList("[UpdaterService] handleClientRequest error:" + e.getMessage());
                 }
-            }
             }
 
         });
-        restThread.start();
+        thread.start();
+    }
+
+    public static boolean canExecute(Date lastDate,int ms) {
+        if(lastDate == null){
+            return true;
+        }
+
+        long diffInMillies = Math.abs(new Date().getTime() - lastDate.getTime());
+        long diffSeconds   = TimeUnit.MILLISECONDS.toSeconds(diffInMillies);
+        if(diffSeconds >= ms){
+            return true;
+        }
+
+        return false;
+    }
+
+    public void handleZabbixRequest() throws JSONException, InterruptedException, OperationApplicationException, RemoteException {
+        if (MainActivity.zabbixServiceUrlValue == null) {
+            sendMessageList("[Configure] Configure a url");
+        }
+
+        if (!MainActivity.zabbixServiceUrlValue.equals("")) {
+            sendMessageList("[Configure] Configure a url");
+        }
+
+        String messageZabbixRawResponse = get(MainActivity.zabbixServiceUrlValue);
+        JSONObject messageZabbixResponse = new JSONObject(messageZabbixRawResponse);
+        sendMessageList("[RETORNO Zabbix "+MainActivity.zabbixServiceUrlValue+"] "+messageZabbixResponse.toString());
+
     }
 
     public void handleRestRequest() throws JSONException, InterruptedException, OperationApplicationException, RemoteException {
@@ -126,6 +175,34 @@ public class UpdaterService extends Service {
             writer.write(sb.toString());
             writer.flush();
             writer.close();
+            outputStream.close();
+            connection.connect();
+
+            final InputStream stream = connection.getInputStream();
+            return new Scanner(stream, "UTF-8").next();
+        } catch (Exception e) {
+            sendMessageList("[POST EXCEPTION]: "+e.getMessage());
+        }
+
+        return null;
+    }
+
+    public String get(String uri) {
+        try {
+            final URL url = new URL(uri);
+            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+            connection.setRequestMethod("GET");
+            connection.setDoInput(true);
+            connection.setDoOutput(true);
+
+            final OutputStream outputStream = connection.getOutputStream();
+            final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+
+            writer.flush();
+            writer.close();
+
             outputStream.close();
             connection.connect();
 
