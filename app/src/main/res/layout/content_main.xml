@@ -22,7 +22,7 @@
                     android:id="@+id/serverIpLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="50dp"
-                    android:text="IP Servidor"
+                    android:text="IP DO SERVIDOR DE APP"
                     android:textSize="20dp"
                     tools:ignore="MissingConstraints"/>
 
@@ -40,7 +40,7 @@
                     android:id="@+id/serverUserLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="50dp"
-                    android:text="Usuario"
+                    android:text="USUARIO SERVIDOR APP"
                     android:textSize="20dp"
                     tools:ignore="MissingConstraints"/>
 
@@ -58,7 +58,7 @@
                     android:id="@+id/serverPwdLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="50dp"
-                    android:text="Senha"
+                    android:text="SENHA SERVIDOR APP"
                     android:textSize="20dp"
                     tools:ignore="MissingConstraints"/>
 
@@ -78,7 +78,7 @@
                     android:id="@+id/serverMsLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="50dp"
-                    android:text="MS"
+                    android:text="MS SERVIDOR APP"
                     android:textSize="20dp"
                     tools:ignore="MissingConstraints"/>
 
@@ -95,7 +95,7 @@
                         android:id="@+id/httppLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="50dp"
-                        android:text="Protocolo"
+                        android:text="PROTOCOLO HTTP SERVIDOR APP"
                         android:textSize="20dp"
                         tools:ignore="MissingConstraints"/>
 
@@ -106,6 +106,25 @@
                         android:textSize="18dp"
                         android:text="Http" />
             </LinearLayout>
+        <LinearLayout android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="horizontal" tools:ignore="MissingConstraints">
+            <TextView
+                    android:id="@+id/startstopLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:text="INICIAR SERVIDOR"
+                    android:textSize="20dp"
+                    tools:ignore="MissingConstraints"/>
+
+            <Button
+                    android:id="@+id/startstop"
+                    android:layout_height="100px"
+                    android:layout_width="120dp"
+
+                    android:textSize="18dp"
+                    android:text="OFF" />
+        </LinearLayout>
 
         <LinearLayout android:layout_width="match_parent"
                       android:layout_height="wrap_content"
@@ -114,7 +133,7 @@
                     android:id="@+id/zabbixServicelabel"
                     android:layout_width="wrap_content"
                     android:layout_height="50dp"
-                    android:text="Zabbix"
+                    android:text="INICIAR SERVICO ZABBIX"
                     android:textSize="20dp"
                     tools:ignore="MissingConstraints"/>
 
@@ -123,7 +142,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="50dp"
                     android:textSize="18dp"
-                    android:text="Desligado" />
+                    android:text="OFF" />
         </LinearLayout>
 
         <LinearLayout android:layout_width="match_parent"
@@ -133,7 +152,7 @@
                     android:id="@+id/zabbixServiceUrllabel"
                     android:layout_width="wrap_content"
                     android:layout_height="50dp"
-                    android:text="Zabbix Url"
+                    android:text="URL SERVIDOR ZABBIX"
                     android:textSize="20dp"
                     tools:ignore="MissingConstraints"/>
 
@@ -152,7 +171,7 @@
                     android:id="@+id/zabbixServiceMsLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="50dp"
-                    android:text="MS"
+                    android:text="MS SERVIDOR ZABBIX"
                     android:textSize="20dp"
                     tools:ignore="MissingConstraints"/>
 
@@ -163,18 +182,11 @@
                     tools:ignore="MissingConstraints"/>
         </LinearLayout>
 
-
-
-
-
-
-
-
-            <LinearLayout android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:orientation="horizontal"
-                  android:gravity="center"
-                  tools:ignore="MissingConstraints">
+        <LinearLayout android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="horizontal"
+              android:gravity="center"
+              tools:ignore="MissingConstraints">
 
                 <Button
                         android:id="@+id/save"
@@ -182,24 +194,15 @@
                         android:layout_width="120dp"
 
                         android:textSize="18dp"
-                        android:text="Salvar" />
+                        android:text="SALVAR CONFIGS" />
 
-                <Button
-                        android:id="@+id/startstop"
-                        android:layout_height="100px"
-                        android:layout_width="120dp"
-
-                        android:textSize="18dp"
-                        android:text="Parar" />
                 <Button
                         android:id="@+id/clearlog"
                         android:layout_height="100px"
                         android:layout_width="120dp"
 
                         android:textSize="18dp"
-                        android:text="Limpar" />
-
-
+                        android:text="LIMPAR LOGS" />
             </LinearLayout>
 
     </LinearLayout>

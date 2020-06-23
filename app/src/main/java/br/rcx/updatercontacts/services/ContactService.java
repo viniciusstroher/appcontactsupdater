@@ -8,30 +8,9 @@ import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import org.json.JSONArray;
 import org.json.JSONException;
-
 import java.util.ArrayList;
 
 public class ContactService {
-
-//    public static void addContact(ContentResolver ctx, String displayName, String phoneNumber){
-//        ContentValues contentValues = new ContentValues();
-//        Uri rawContactUri = ctx.insert(ContactsContract.RawContacts.CONTENT_URI, contentValues);
-//        Uri addContactsUri = ContactsContract.Data.CONTENT_URI;
-//
-//        long rawContactId = ContentUris.parseId(rawContactUri);
-//        contentValues.put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId);
-//
-//        // Each contact must has an mime type to avoid java.lang.IllegalArgumentException: mimetype is required error.
-//        contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
-//        // Put contact display name value.
-//        contentValues.put(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, displayName);
-//
-//        contentValues.put(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber);
-//        int phoneContactType = ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE;
-//        contentValues.put(ContactsContract.CommonDataKinds.Phone.TYPE, phoneContactType);
-//
-//        ctx.insert(addContactsUri, contentValues);
-//    }
 
     //falta adicionar nos contatos
     public static void addContact(ContentResolver ctx, String phoneNumber,String groupId,boolean replace) throws OperationApplicationException, RemoteException {
@@ -85,7 +64,6 @@ public class ContactService {
             if (contactLookup != null && contactLookup.getCount() > 0) {
                 contactLookup.moveToNext();
                 name = contactLookup.getString(contactLookup.getColumnIndex(ContactsContract.Data.DISPLAY_NAME));
-                //String contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
             }
         } finally {
             if (contactLookup != null) {
@@ -108,7 +86,6 @@ public class ContactService {
             if (contactLookup != null && contactLookup.getCount() > 0) {
                 contactLookup.moveToNext();
                 name = contactLookup.getString(contactLookup.getColumnIndex(ContactsContract.Data.CONTACT_ID));
-                //String contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
             }
         } finally {
             if (contactLookup != null) {
@@ -212,7 +189,9 @@ public class ContactService {
                 }
             }
         }
-        if(cur != null)
+
+        if(cur != null){
             cur.close();
+        }
     }
 }

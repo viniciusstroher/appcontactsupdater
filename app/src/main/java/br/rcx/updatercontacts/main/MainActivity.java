@@ -195,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
             startStopButton.setText(DEFAULT_OFF);
         }
 
-        //zabbix
+        //zabbix url
         if(zabbixServiceUrlValue != null) {
             zabbixServiceUrl.setText(zabbixServiceUrlValue);
         }else{
@@ -203,11 +203,12 @@ public class MainActivity extends AppCompatActivity {
             zabbixServiceUrl.setText(msValue);
         }
 
+        //zabbix ms
         if(zabbixServiceMsValue != null) {
             zabbixServiceMs.setText(zabbixServiceMsValue);
         }else{
             zabbixServiceMsValue = MainActivity.DEFAULT_MS;
-            zabbixServiceMs.setText(msValue);
+            zabbixServiceMs.setText(zabbixServiceMsValue);
         }
 
         //start stop button
@@ -251,11 +252,8 @@ public class MainActivity extends AppCompatActivity {
                 pwdValue = pwd.getText().toString();
                 httpValue = httpButton.getText().toString();
                 msValue = ms.getText().toString();
-
-                zabbixServiceValue = zabbixServiceButton.getText().toString().toLowerCase().equals(DEFAULT_OFF) ? false : true;
                 zabbixServiceUrlValue = zabbixServiceUrl.getText().toString();
                 zabbixServiceMsValue = zabbixServiceMs.getText().toString();
-
                 authValue = ApiService.generateAuth(userValue,pwdValue);
 
                 //salva estado nos preferences
@@ -280,21 +278,45 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v){
-                startstop = !startstop;
-                preferenceService.setPreference(DEFAULT_PREF_KEY_STARTSTOP,startstop);
+                startStopValue = !startStopValue;
+                preferenceService.setPreference(DEFAULT_PREF_KEY_STARTSTOP,startStopValue);
 
-                if(startstop) {
-                    showSaveMessage("Iniciando rest!");
-                    addMessageToList("Iniciando rest!");
+                if(startStopValue) {
+                    showSaveMessage("Iniciando servico!");
+                    addMessageToList("Iniciando servico!");
                 }else{
-                    showSaveMessage("Parando rest!");
-                    addMessageToList("Parando rest!");
+                    showSaveMessage("Parando servico!");
+                    addMessageToList("Parando servico!");
                 }
 
-                if(startstop){
+                if(startStopValue){
                     startStopButton.setText(DEFAULT_ON);
                 }else{
                     startStopButton.setText(DEFAULT_OFF);
+                }
+            }
+        });
+
+        //botão iniciar serviço
+        zabbixServiceButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v){
+                zabbixServiceValue = !zabbixServiceValue;
+                preferenceService.setPreference(DEFAULT_PREF_KEY_ZABBIX,zabbixServiceValue);
+
+                if(zabbixServiceValue) {
+                    showSaveMessage("Habilitando zabbix!");
+                    addMessageToList("Habilitando zabbix!");
+                }else{
+                    showSaveMessage("Desabilitando zabbix!");
+                    addMessageToList("Desabilitando zabbix!");
+                }
+
+                if(zabbixServiceValue){
+                    zabbixServiceButton.setText(DEFAULT_ON);
+                }else{
+                    zabbixServiceButton.setText(DEFAULT_OFF);
                 }
             }
         });

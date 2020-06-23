@@ -8,7 +8,6 @@ import br.rcx.updatercontacts.main.MainActivity;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -24,26 +23,24 @@ public class UpdaterService extends Service {
         restThread = new Thread(new Runnable() {
             @Override
             public void run() {
-            sendMessageList("Iniciando servico de rest");
+            sendMessageList("[UpdaterService] Iniciando Servico de Checagem de numeros.");
             while (true) {
                 try {
                     int sleepTime = Integer.parseInt(MainActivity.msValue);
                     if(sleepTime > 0) {
-
-                        if (MainActivity.startstop) {
+                        if (MainActivity.startStopValue) {
                             handleRestRequest();
                         }
                         Thread.sleep(sleepTime);
                     }
                 } catch (Exception e) {
-                    sendMessageList("handleClientRequest error:" + e.getMessage());
+                    sendMessageList("[UpdaterService] handleClientRequest error:" + e.getMessage());
                 }
             }
             }
 
         });
         restThread.start();
-
     }
 
     public void handleRestRequest() throws JSONException, InterruptedException, OperationApplicationException, RemoteException {
@@ -54,29 +51,28 @@ public class UpdaterService extends Service {
         if(!MainActivity.hostValue.equals("") && !MainActivity.authValue.equals("")){
             sendMessageList("[Configure] Configure o host e o auth");
         }
-        JSONObject message = new JSONObject();
 
-        //ajustar este fluxo
-        message.put("action","android_get_contacts_whats");
-        String returnApi = post(MainActivity.httpValue, MainActivity.hostValue, MainActivity.authValue, message);
-        sendMessageList("[ENVIO REST android_get_contacts_whats] "+MainActivity.hostValue+" - "+message.toString());
+        JSONObject messagePhoneNumbersRequest = new JSONObject();
+        messagePhoneNumbersRequest.put("action","android_get_contacts_whats");
+        String returnApi = post(MainActivity.httpValue, MainActivity.hostValue, MainActivity.authValue, messagePhoneNumbersRequest);
+        sendMessageList("[ENVIO REST android_get_contacts_whats] "+MainActivity.hostValue+" - "+messagePhoneNumbersRequest.toString());
 
-        JSONObject restResponse;
+        JSONObject messagePhoneNumbersResponse;
         try{
-            restResponse = new JSONObject(returnApi);
-            sendMessageList("[RETORNO REST android_get_contacts_whats] "+restResponse.toString());
+            messagePhoneNumbersResponse = new JSONObject(returnApi);
+            sendMessageList("[RETORNO REST android_get_contacts_whats] "+messagePhoneNumbersResponse.toString());
         }catch (Exception e){
-            restResponse = null;
+            messagePhoneNumbersResponse = null;
             sendMessageList("[ENVIO REST android_get_contacts_whats][Exception] Erro parse json api.");
         }
 
         //trata retorno api
-        if(restResponse != null){
+        if(messagePhoneNumbersResponse != null){
             //regra de negocio
-            if(!restResponse.has("data")) {
+            if(!messagePhoneNumbersResponse.has("data")) {
                 sendMessageList("[RETORNO REST] Não tem data");
             }else{
-                JSONArray phones = restResponse.getJSONArray("data");
+                JSONArray phones = messagePhoneNumbersResponse.getJSONArray("data");
                 if(phones.length() == 0) {
                     sendMessageList("[RETORNO REST] Não há phones");
                 }else{
@@ -88,13 +84,13 @@ public class UpdaterService extends Service {
                         phoneChecked = ApiService.checkPhone(MainActivity.ctx, phone.getString("VALUE"));
 
                         //SetContact
-                        JSONObject message2 = new JSONObject();
-                        message2.put("action","android_set_contacts_whats");
-                        message2.put("contact_id",Integer.parseInt(phone.getString("ID")));
-                        message2.put("whats",phoneChecked.getString("hasWhats"));
+                        JSONObject messagePhoneNumberUpdateRequest = new JSONObject();
+                        messagePhoneNumberUpdateRequest.put("action","android_set_contacts_whats");
+                        messagePhoneNumberUpdateRequest.put("contact_id",Integer.parseInt(phone.getString("ID")));
+                        messagePhoneNumberUpdateRequest.put("whats",phoneChecked.getString("hasWhats"));
 
-                        returnApi = post(MainActivity.httpValue, MainActivity.hostValue, MainActivity.authValue, message2);
-                        sendMessageList("[ENVIO REST android_set_contacts_whats] "+MainActivity.hostValue+" - "+message2.toString());
+                        returnApi = post(MainActivity.httpValue, MainActivity.hostValue, MainActivity.authValue, messagePhoneNumberUpdateRequest);
+                        sendMessageList("[ENVIO REST android_set_contacts_whats] "+MainActivity.hostValue+" - "+messagePhoneNumberUpdateRequest.toString());
                         sendMessageList("[RETORNO REST android_set_contacts_whats] "+returnApi.toString());
                     }
                 }
