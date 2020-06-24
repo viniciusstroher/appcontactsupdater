@@ -203,6 +203,14 @@
 
                         android:textSize="18dp"
                         android:text="LIMPAR LOGS" />
+
+            <Button
+                    android:id="@+id/downloadLog"
+                    android:layout_height="100px"
+                    android:layout_width="120dp"
+
+                    android:textSize="18dp"
+                    android:text="DOWNLOAD LOGS" />
             </LinearLayout>
 
     </LinearLayout>

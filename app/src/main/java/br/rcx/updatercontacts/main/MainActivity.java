@@ -1,6 +1,7 @@
 package br.rcx.updatercontacts.main;
 
 import android.Manifest;
+import android.app.DatePickerDialog;
 import android.content.*;
 import android.os.Bundle;
 import android.widget.*;
@@ -16,6 +17,7 @@ import br.rcx.updatercontacts.services.PreferenceService;
 import br.rcx.updatercontacts.services.UpdaterService;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -75,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
     private Button saveButton;
     private Button startStopButton;
     private Button clearlogButton;
+    private Button downloadLog;
     private LinearLayout configPanel;
     private LinearLayout logPanel;
 
@@ -123,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
         clearlogButton = findViewById(R.id.clearlog);
         configPanel = findViewById(R.id.configPanel);
         logPanel = findViewById(R.id.logPanel);
+        downloadLog = findViewById(R.id.downloadLog);
 
         //carrega valores nos campos
         loadFieldsValues();
@@ -154,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
         zabbixServiceMsValue = preferenceService.getPreference(DEFAULT_PREF_KEY_ZABBIX_MS);
         zabbixServiceValue = preferenceService.getPreferenceBoolean(DEFAULT_PREF_KEY_ZABBIX);
         startStopValue = preferenceService.getPreferenceBoolean(DEFAULT_PREF_KEY_STARTSTOP);
+
         //gera tocken de auth
         authValue = ApiService.generateAuth(userValue,pwdValue);
 
@@ -330,7 +335,34 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        downloadLog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v){
+                Calendar calendario = Calendar.getInstance();
+
+                int ano = calendario.get(Calendar.YEAR);
+                int mes = calendario.get(Calendar.MONTH);
+                int dia = calendario.get(Calendar.DAY_OF_MONTH);
+
+                DatePickerDialog dpd =  new DatePickerDialog( MainActivity.this, mDateSetListener, ano, mes, dia);
+                dpd.show();
+
+            }
+        });
     }
+
+    private DatePickerDialog.OnDateSetListener mDateSetListener =
+    new DatePickerDialog.OnDateSetListener() {
+        public void onDateSet(DatePicker view, int year, int monthOfYear,
+                              int dayOfMonth) {
+            String data = String.valueOf(dayOfMonth) + " /"
+                    + String.valueOf(monthOfYear+1) + " /" + String.valueOf(year);
+            Toast.makeText(MainActivity.this,
+                    "DATA = " + data, Toast.LENGTH_SHORT)
+                    .show();
+        }
+    };
 
 
 
