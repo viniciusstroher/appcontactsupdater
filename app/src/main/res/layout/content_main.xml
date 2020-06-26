@@ -95,7 +95,7 @@
                         android:id="@+id/httppLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="50dp"
-                        android:text="PROTOCOLO HTTP SERVIDOR APP"
+                        android:text="PROTOCOLO HTTP"
                         android:textSize="20dp"
                         tools:ignore="MissingConstraints"/>
 
@@ -195,14 +195,6 @@
 
                         android:textSize="18dp"
                         android:text="SALVAR CONFIGS" />
-
-                <Button
-                        android:id="@+id/clearlog"
-                        android:layout_height="100px"
-                        android:layout_width="120dp"
-
-                        android:textSize="18dp"
-                        android:text="LIMPAR LOGS" />
 
             <Button
                     android:id="@+id/downloadLog"

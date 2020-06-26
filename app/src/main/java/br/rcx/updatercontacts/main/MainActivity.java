@@ -133,7 +133,6 @@ public class MainActivity extends AppCompatActivity {
         zabbixServiceMs = findViewById(R.id.zabbixServiceMsInput);
 
         startStopButton = findViewById(R.id.startstop);
-        clearlogButton = findViewById(R.id.clearlog);
         configPanel = findViewById(R.id.configPanel);
         logPanel = findViewById(R.id.logPanel);
         downloadLog = findViewById(R.id.downloadLog);
@@ -335,16 +334,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-        //botao de limpeza de log
-        clearlogButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v){
-                arrayListMessages.clear();
-                ((ArrayAdapter<String>) listView.getAdapter()).notifyDataSetChanged();
-            }
-        });
-
 
         downloadLog.setOnClickListener(new View.OnClickListener() {
             @Override
