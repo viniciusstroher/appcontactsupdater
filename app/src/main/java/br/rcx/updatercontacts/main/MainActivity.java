@@ -381,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
         intentShareFile.setType(URLConnection.guessContentTypeFromName(file.getName()));
         intentShareFile.putExtra(Intent.EXTRA_STREAM,
                 Uri.parse(Environment.getExternalStorageDirectory() +"/"+file.getName()));
-
+        intentShareFile.setType("text/plain");
         //if you need
         intentShareFile.putExtra(Intent.EXTRA_SUBJECT,"Sharing File Subject");
         startActivity(Intent.createChooser(intentShareFile, "Share File"));
