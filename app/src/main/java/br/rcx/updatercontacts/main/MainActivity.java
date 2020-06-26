@@ -3,7 +3,10 @@ package br.rcx.updatercontacts.main;
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.*;
+import android.net.ParseException;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -16,6 +19,13 @@ import br.rcx.updatercontacts.services.ApiService;
 import br.rcx.updatercontacts.services.PreferenceService;
 import br.rcx.updatercontacts.services.UpdaterService;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.URLConnection;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -361,16 +371,39 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this,
                     "DATA = " + data, Toast.LENGTH_SHORT)
                     .show();
+
+            String date = formatDate(new Date());
+            File logFile = new File(Environment.getExternalStorageDirectory()+"/"+date+".log");
+            if(!logFile.exists()){
+                Toast.makeText(MainActivity.this,
+                        "Log não encontrado", Toast.LENGTH_SHORT)
+                        .show();
+            }else{
+                shareFile(logFile);
+            }
+
         }
     };
 
+    private void shareFile(File file) {
 
+        Intent intentShareFile = new Intent(Intent.ACTION_SEND);
+
+        intentShareFile.setType(URLConnection.guessContentTypeFromName(file.getName()));
+        intentShareFile.putExtra(Intent.EXTRA_STREAM,
+                Uri.parse(Environment.getExternalStorageDirectory() +"/"+file.getName()));
+
+        //if you need
+        intentShareFile.putExtra(Intent.EXTRA_SUBJECT,"Sharing File Subject");
+        startActivity(Intent.createChooser(intentShareFile, "Share File"));
+    }
 
     public void showSaveMessage(String message) {
         Toast.makeText(MainActivity.this, message , Toast.LENGTH_SHORT).show();
     }
 
     public void addMessageToList(String message){
+        appendLog(message);
         String currentDateTimeString = java.text.DateFormat.getDateTimeInstance().format(new Date());
         arrayListMessages.add("["+currentDateTimeString+"] "+message);
 
@@ -438,4 +471,41 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
+    public String formatDate(Date date){
+        String pattern = "dd-MM-yyyy";
+        DateFormat df = new SimpleDateFormat(pattern);
+        return df.format(date);
+    }
+
+    public void appendLog(String text)
+    {
+        String dateNow = formatDate(new Date());
+
+        File logFile = new File("sdcard/"+dateNow+".log");
+        if (!logFile.exists())
+        {
+            try
+            {
+                logFile.createNewFile();
+            }
+            catch (IOException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        try
+        {
+            //BufferedWriter for performance, true to set append to file flag
+            BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
+            buf.append(text);
+            buf.newLine();
+            buf.close();
+        }
+        catch (IOException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 }
