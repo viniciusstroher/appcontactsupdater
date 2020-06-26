@@ -3,7 +3,6 @@ package br.rcx.updatercontacts.main;
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.*;
-import android.net.ParseException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -25,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URLConnection;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -355,17 +355,24 @@ public class MainActivity extends AppCompatActivity {
     new DatePickerDialog.OnDateSetListener() {
         public void onDateSet(DatePicker view, int year, int monthOfYear,
                               int dayOfMonth) {
-            String data = String.valueOf(dayOfMonth) + " /"
-                    + String.valueOf(monthOfYear+1) + " /" + String.valueOf(year);
+            String data = String.valueOf(dayOfMonth) + "/"
+                    + String.valueOf(monthOfYear+1) + "/" + String.valueOf(year);
             Toast.makeText(MainActivity.this,
-                    "DATA = " + data, Toast.LENGTH_SHORT)
+                    "Procurando logs de " + data, Toast.LENGTH_SHORT)
                     .show();
 
-            String date = formatDate(new Date());
+            Date chooseDate = null;
+            try {
+                chooseDate = new SimpleDateFormat("d/M/yyyy").parse(data);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            String date = formatDate(chooseDate);
             File logFile = new File(Environment.getExternalStorageDirectory()+"/"+date+".log");
             if(!logFile.exists()){
                 Toast.makeText(MainActivity.this,
-                        "Log não encontrado", Toast.LENGTH_SHORT)
+                        "Log não encontrado de "+ data, Toast.LENGTH_SHORT)
                         .show();
             }else{
                 shareFile(logFile);
