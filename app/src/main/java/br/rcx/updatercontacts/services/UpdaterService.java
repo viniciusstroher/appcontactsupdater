@@ -140,7 +140,7 @@ public class UpdaterService extends Service {
                         messagePhoneNumberUpdateRequest.put("action","android_set_contacts_whats");
                         messagePhoneNumberUpdateRequest.put("contact_id",Integer.parseInt(phone.getString("ID")));
                         messagePhoneNumberUpdateRequest.put("whats",phoneChecked.getString("hasWhats"));
-
+                        sendMessageList("[CHECKED android_set_contacts_whats] "+phoneChecked.toString());
                         returnApi = post(MainActivity.httpValue, MainActivity.hostValue, MainActivity.authValue, messagePhoneNumberUpdateRequest);
                         sendMessageList("[ENVIO REST android_set_contacts_whats] "+MainActivity.hostValue+" - "+messagePhoneNumberUpdateRequest.toString());
                         sendMessageList("[RETORNO REST android_set_contacts_whats] "+returnApi.toString());
