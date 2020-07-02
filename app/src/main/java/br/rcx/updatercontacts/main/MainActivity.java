@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String DEFAULT_MS = "60000";
     private static final String DEFAULT_PROTOCOL_HTTP = "http";
     private static final String DEFAULT_PROTOCOL_HTTPS = "https";
-    private static final String DEFAULT_URL_ZABBIX = "http://zabbix?senha=123&user=1";
+    private static final String DEFAULT_URL_ZABBIX = "http://172.31.1.91/rcx/rSender.php?ic=IC_BOT_HML&aic=appContatosRun&vaic=1&secKey=rcx@2019";
     private static final String DEFAULT_ON = "ON";
     private static final String DEFAULT_OFF = "OFF";
 

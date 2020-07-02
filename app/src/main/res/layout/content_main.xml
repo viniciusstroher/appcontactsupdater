@@ -154,6 +154,7 @@
                     android:layout_height="50dp"
                     android:text="URL SERVIDOR ZABBIX"
                     android:textSize="20dp"
+                    android:lines="8"
                     tools:ignore="MissingConstraints"/>
 
             <EditText
